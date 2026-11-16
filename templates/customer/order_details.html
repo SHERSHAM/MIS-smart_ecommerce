@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details #{{ order.order_number }} | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="breadcrumb-viva">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('customer.home') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('order.my_orders') }}">My Orders</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ order.order_number }}</li>
+    </ol>
+  </nav>
+
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+    <div>
+      <h1 class="h3 fw-bold m-0" style="color: var(--viva-forest-dark);">Order #{{ order.order_number }}</h1>
+      <span class="text-muted small">Placed on {{ order.created_at.strftime('%d %B %Y, %I:%M %p') if order.created_at else '' }}</span>
+    </div>
+    <a href="{{ url_for('order.track_order', order_number=order.order_number) }}" class="btn btn-viva-primary btn-sm">
+      <i class="bi bi-geo-alt me-1"></i> Track Order Status
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column: Items and Tracking -->
+    <div class="col-12 col-lg-8">
+      <!-- Order Items Card -->
+      <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <h5 class="fw-bold mb-3" style="color: var(--viva-forest-dark);">Items in This Order ({{ items|length }})</h5>
+
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead class="text-muted small text-uppercase">
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Price</th>
+                <th scope="col">Qty</th>
+                <th scope="col" class="text-end">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in items %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="rounded-2" style="width: 60px; height: 60px; object-fit: cover;">
+                    <div>
+                      <h6 class="mb-0 fw-bold">{{ item.product_name }}</h6>
+                    </div>
+                  </div>
+                </td>
+                <td>₹{{ "%.0f"|format(item.product_price) }}</td>
+                <td>{{ item.quantity }}</td>
+                <td class="text-end fw-bold text-success">₹{{ "%.0f"|format(item.subtotal) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Delivery Address Card -->
+      <div class="card border-0 shadow-sm p-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <h5 class="fw-bold mb-3" style="color: var(--viva-forest-dark);">Shipping & Delivery Details</h5>
+        <div class="p-3 rounded-3 bg-light border">
+          <p class="mb-1"><strong>Recipient:</strong> {{ order.delivery_name }}</p>
+          <p class="mb-1"><strong>Contact Phone:</strong> {{ order.delivery_phone }}</p>
+          <p class="mb-1"><strong>Email:</strong> {{ order.delivery_email }}</p>
+          <p class="mb-0"><strong>Delivery Address:</strong><br>
+            {{ order.delivery_address }}<br>
+            {{ order.delivery_city }}, {{ order.delivery_state }} - {{ order.delivery_pincode }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Financial Breakdown & Payment -->
+    <div class="col-12 col-lg-4">
+      <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <h5 class="fw-bold mb-3" style="color: var(--viva-forest-dark);">Payment Breakdown</h5>
+
+        <div class="d-flex justify-content-between py-2 border-bottom small">
+          <span class="text-muted">Subtotal</span>
+          <span class="fw-semibold">₹{{ "%.0f"|format(order.subtotal) }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between py-2 border-bottom small">
+          <span class="text-muted">Shipping Fee</span>
+          <span>
+            {% if order.shipping_fee == 0 %}
+              <span class="text-success fw-bold">FREE</span>
+            {% else %}
+              <span class="fw-semibold">₹{{ "%.0f"|format(order.shipping_fee) }}</span>
+            {% endif %}
+          </span>
+        </div>
+
+        {% if order.discount and order.discount > 0 %}
+        <div class="d-flex justify-content-between py-2 border-bottom small">
+          <span class="text-muted">Discount</span>
+          <span class="text-danger">-₹{{ "%.0f"|format(order.discount) }}</span>
+        </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between py-3 mb-3">
+          <span class="fs-5 fw-bold" style="color: var(--viva-forest-dark);">Total Amount</span>
+          <span class="fs-5 fw-bold text-success">₹{{ "%.0f"|format(order.total) }}</span>
+        </div>
+
+        <div class="pt-3 border-top small">
+          <p class="mb-1"><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+          <p class="mb-1"><strong>Payment Status:</strong> 
+            <span class="badge {% if order.payment_status == 'Completed' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+              {{ order.payment_status }}
+            </span>
+          </p>
+          {% if order.transaction_id %}
+          <p class="mb-0 text-muted font-monospace"><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <a href="{{ url_for('order.my_orders') }}" class="btn btn-viva-outline w-100 py-2">
+        <i class="bi bi-arrow-left me-2"></i> Back to My Orders
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

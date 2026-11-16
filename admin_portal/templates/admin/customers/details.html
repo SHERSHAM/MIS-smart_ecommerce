@@ -1,0 +1,85 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}{{ customer.full_name }} | Customer Profile | VIVA Admin{% endblock %}
+{% block page_heading %}Customer Profile: {{ customer.full_name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="admin-card text-center">
+      <div class="admin-avatar mx-auto mb-3" style="width: 64px; height: 64px; font-size: 1.5rem;">
+        {{ customer.full_name[0] }}
+      </div>
+      <h5 class="fw-bold text-white mb-1">{{ customer.full_name }}</h5>
+      <span class="small text-muted d-block mb-3">{{ customer.email }}</span>
+      <span class="small text-muted d-block mb-3"><i class="bi bi-telephone me-1"></i> {{ customer.phone or 'No phone listed' }}</span>
+
+      <div class="p-3 rounded text-start small mb-3" style="background-color: var(--admin-bg-surface); border: 1px solid var(--admin-border);">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="text-muted">Registered:</span>
+          <span class="text-white">{{ customer.created_at.strftime('%d %b %Y') if customer.created_at else '' }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span class="text-muted">Total Orders:</span>
+          <span class="text-white fw-bold">{{ orders|length }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Lifetime Value:</span>
+          <span class="fw-bold" style="color: var(--admin-neon);">₹{{ "{:,.0f}".format(total_spent) }}</span>
+        </div>
+      </div>
+
+      <a href="{{ url_for('admin_customer.customer_list') }}" class="btn btn-admin-outline w-100 btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Customer List
+      </a>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-8">
+    <div class="admin-card">
+      <h6 class="admin-card-title mb-3">Order History ({{ orders|length }})</h6>
+
+      {% if orders %}
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Total (₹)</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for ord in orders %}
+            <tr>
+              <td>
+                <span class="font-monospace fw-semibold" style="color: var(--admin-neon); font-size: 0.8rem;">
+                  {{ ord.order_number }}
+                </span>
+              </td>
+              <td class="small text-muted">{{ ord.created_at.strftime('%d %b %Y, %H:%M') if ord.created_at else '' }}</td>
+              <td>
+                <span class="admin-badge {% if ord.status == 'Delivered' %}admin-badge-success{% elif ord.status == 'Cancelled' %}admin-badge-danger{% else %}admin-badge-neon{% endif %}" style="font-size: 0.7rem;">
+                  {{ ord.status }}
+                </span>
+              </td>
+              <td class="fw-bold text-white">₹{{ "{:,.0f}".format(ord.total) }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('admin_order.order_detail', order_id=ord.id) }}" class="btn btn-sm btn-admin-outline py-1 px-2">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="text-muted small my-3">No orders placed by this customer yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

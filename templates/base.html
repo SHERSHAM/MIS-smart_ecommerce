@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}VIVA – Live Better{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- =========================================================================
+       A. TOP ANNOUNCEMENT BAR
+       ========================================================================= -->
+  <div class="top-announcement-bar">
+    <div class="container d-flex justify-content-center align-items-center flex-wrap">
+      <span><i class="bi bi-truck"></i> Free Shipping on Orders Over ₹999</span>
+      <span class="separator">|</span>
+      <span><i class="bi bi-arrow-repeat"></i> 30-Day Easy Returns</span>
+      <span class="separator">|</span>
+      <span><i class="bi bi-shield-check"></i> Secure Payments</span>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       B. MAIN HEADER
+       ========================================================================= -->
+  <header class="main-header">
+    <div class="container">
+      <div class="row align-items-center gy-2">
+        <!-- Left: Logo & Tagline -->
+        <div class="col-6 col-md-3">
+          <a href="{{ url_for('customer.home') }}" class="brand-logo-wrap">
+            <div class="brand-icon-box">
+              <i class="bi bi-bag-heart"></i>
+            </div>
+            <div>
+              <div class="brand-name">ViVA</div>
+              <div class="brand-tagline">LIVE BETTER</div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Center: Search Bar -->
+        <div class="col-12 col-md-6 order-3 order-md-2">
+          <form action="{{ url_for('product.search') }}" method="GET" class="header-search-form">
+            <input type="text" name="q" class="header-search-input" placeholder="Search products, brands and more..." value="{{ request.args.get('q', '') }}" required>
+            <button type="submit" class="header-search-btn" title="Search">
+              <i class="bi bi-search"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Action Icons (Account, Wishlist, Cart) -->
+        <div class="col-6 col-md-3 order-2 order-md-3">
+          <div class="d-flex align-items-center justify-content-end header-actions-wrap">
+            <!-- Account -->
+            {% if session.get('customer_id') %}
+            <div class="dropdown">
+              <a href="#" class="header-action-item dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="header-action-icon">
+                  <i class="bi bi-person-circle"></i>
+                </div>
+                <span class="header-action-label">{{ session.get('customer_name', 'Account').split()[0] }}</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 12px;">
+                <li><h6 class="dropdown-header">Hello, {{ session.get('customer_name') }}</h6></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('customer.profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('order.my_orders') }}"><i class="bi bi-box-seam me-2"></i>My Orders</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('customer.addresses') }}"><i class="bi bi-geo-alt me-2"></i>Addresses</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+              </ul>
+            </div>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="header-action-item">
+              <div class="header-action-icon">
+                <i class="bi bi-person"></i>
+              </div>
+              <span class="header-action-label">Account</span>
+            </a>
+            {% endif %}
+
+            <!-- Wishlist -->
+            <a href="{{ url_for('wishlist.view_wishlist') }}" class="header-action-item">
+              <div class="header-action-icon">
+                <i class="bi bi-heart"></i>
+                <span class="header-action-badge header-wishlist-badge" style="{% if not wishlist_count %}display: none;{% endif %}">{{ wishlist_count|default(0) }}</span>
+              </div>
+              <span class="header-action-label">Wishlist</span>
+            </a>
+
+            <!-- Cart -->
+            <a href="{{ url_for('cart.view_cart') }}" class="header-action-item">
+              <div class="header-action-icon">
+                <i class="bi bi-bag"></i>
+                <span class="header-action-badge header-cart-badge" style="{% if not cart_count %}display: none;{% endif %}">{{ cart_count|default(0) }}</span>
+              </div>
+              <span class="header-action-label">Cart</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       C. NAVIGATION BAR
+       ========================================================================= -->
+  <nav class="main-nav">
+    <div class="container d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <!-- All Categories Button Dropdown -->
+      <div class="dropdown">
+        <button class="categories-dropdown-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-grid-fill"></i>
+          <span>All Categories</span>
+        </button>
+        <ul class="dropdown-menu shadow-lg border-0 mt-2 py-2" style="border-radius: 14px; min-width: 240px;">
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=1) }}"><i class="bi bi-cpu me-2 text-muted"></i>Electronics</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=2) }}"><i class="bi bi-handbag me-2 text-muted"></i>Fashion</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=3) }}"><i class="bi bi-house-door me-2 text-muted"></i>Home & Living</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=4) }}"><i class="bi bi-droplet me-2 text-muted"></i>Beauty & Wellness</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=5) }}"><i class="bi bi-trophy me-2 text-muted"></i>Sports & Fitness</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=6) }}"><i class="bi bi-puzzle me-2 text-muted"></i>Toys & Kids</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=7) }}"><i class="bi bi-book me-2 text-muted"></i>Books & Stationery</a></li>
+          <li><a class="dropdown-item py-2" href="{{ url_for('product.shop', category=8) }}"><i class="bi bi-heart me-2 text-muted"></i>Pet Supplies</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item py-2 fw-bold text-success" href="{{ url_for('product.shop') }}"><i class="bi bi-arrow-right-circle me-2"></i>View All Products</a></li>
+        </ul>
+      </div>
+
+      <!-- Main Navigation Links -->
+      <div class="d-none d-lg-flex align-items-center gap-1">
+        <a href="{{ url_for('customer.home') }}" class="nav-link-item {% if request.endpoint == 'customer.home' %}active{% endif %}">Home</a>
+        <a href="{{ url_for('product.shop') }}" class="nav-link-item {% if request.endpoint == 'product.shop' and not request.args.get('sort') %}active{% endif %}">Shop</a>
+        <a href="{{ url_for('product.deals') }}" class="nav-link-item {% if request.endpoint == 'product.deals' %}active{% endif %}">Deals</a>
+        <a href="{{ url_for('product.shop', sort='newest') }}" class="nav-link-item">New Arrivals</a>
+        <a href="{{ url_for('product.shop') }}" class="nav-link-item">Brands</a>
+        <a href="{{ url_for('customer.about') }}" class="nav-link-item">Inspiration</a>
+        <a href="{{ url_for('order.track_order') }}" class="nav-link-item {% if request.endpoint == 'order.track_order' %}active{% endif %}">Track Order</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages Alert -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show alert-viva shadow-sm" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- =========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================= -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- =========================================================================
+       J. SERVICE BENEFITS SECTION
+       ========================================================================= -->
+  <section class="benefits-section">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-6 col-lg-3">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-truck"></i>
+            </div>
+            <div>
+              <div class="benefit-title">Free Shipping</div>
+              <p class="benefit-desc">On orders over ₹999</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-arrow-repeat"></i>
+            </div>
+            <div>
+              <div class="benefit-title">Easy Returns</div>
+              <p class="benefit-desc">30-day hassle free return</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-shield-lock"></i>
+            </div>
+            <div>
+              <div class="benefit-title">Secure Payments</div>
+              <p class="benefit-desc">100% encrypted checkout</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+          <div class="benefit-item">
+            <div class="benefit-icon">
+              <i class="bi bi-headset"></i>
+            </div>
+            <div>
+              <div class="benefit-title">24/7 Support</div>
+              <p class="benefit-desc">Dedicated customer care</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       K. FOOTER
+       ========================================================================= -->
+  <footer class="main-footer">
+    <div class="container">
+      <div class="row gy-4">
+        <!-- Logo & Brand Statement -->
+        <div class="col-12 col-md-4">
+          <a href="{{ url_for('customer.home') }}" class="brand-logo-wrap text-white">
+            <div class="brand-icon-box bg-white text-dark">
+              <i class="bi bi-bag-heart"></i>
+            </div>
+            <div>
+              <div class="brand-name text-white">ViVA</div>
+              <div class="brand-tagline text-white-50">LIVE BETTER</div>
+            </div>
+          </a>
+          <p class="footer-brand-desc">
+            Your one-stop destination for quality lifestyle products across every category. Designed for conscious, elevated living.
+          </p>
+          <div class="footer-social-links">
+            <a href="#" class="footer-social-btn" title="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="footer-social-btn" title="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="footer-social-btn" title="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="footer-social-btn" title="YouTube"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+
+        <!-- Column 1: Shop -->
+        <div class="col-6 col-md-2">
+          <h5 class="footer-col-title">Shop</h5>
+          <ul class="footer-links-list">
+            <li><a href="{{ url_for('product.shop') }}">All Categories</a></li>
+            <li><a href="{{ url_for('product.shop', sort='newest') }}">New Arrivals</a></li>
+            <li><a href="{{ url_for('product.shop', sort='popularity') }}">Best Sellers</a></li>
+            <li><a href="{{ url_for('product.deals') }}">Deals & Offers</a></li>
+            <li><a href="{{ url_for('product.shop') }}">Gift Cards</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 2: Customer Service -->
+        <div class="col-6 col-md-2">
+          <h5 class="footer-col-title">Customer Service</h5>
+          <ul class="footer-links-list">
+            <li><a href="{{ url_for('order.track_order') }}">Track Order</a></li>
+            <li><a href="{{ url_for('customer.returns') }}">Returns & Refunds</a></li>
+            <li><a href="{{ url_for('customer.shipping_info') }}">Shipping Info</a></li>
+            <li><a href="{{ url_for('customer.faq') }}">FAQ</a></li>
+            <li><a href="{{ url_for('customer.contact') }}">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Company -->
+        <div class="col-6 col-md-2">
+          <h5 class="footer-col-title">Company</h5>
+          <ul class="footer-links-list">
+            <li><a href="{{ url_for('customer.about') }}">About Us</a></li>
+            <li><a href="{{ url_for('customer.about') }}">Careers</a></li>
+            <li><a href="{{ url_for('customer.about') }}">Blog</a></li>
+            <li><a href="{{ url_for('customer.about') }}">Affiliate Program</a></li>
+            <li><a href="{{ url_for('customer.about') }}">Sustainability</a></li>
+          </ul>
+        </div>
+
+        <!-- Column 4: Download App -->
+        <div class="col-6 col-md-2">
+          <h5 class="footer-col-title">Download App</h5>
+          <p class="small text-white-50">Shop on the go with our mobile app.</p>
+          <div class="app-download-badges">
+            <a href="#" class="app-badge-btn">
+              <i class="bi bi-apple"></i>
+              <div>
+                <span class="app-badge-sub">Download on the</span>
+                <span class="app-badge-name">App Store</span>
+              </div>
+            </a>
+            <a href="#" class="app-badge-btn">
+              <i class="bi bi-google-play"></i>
+              <div>
+                <span class="app-badge-sub">GET IT ON</span>
+                <span class="app-badge-name">Google Play</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Footer -->
+      <div class="footer-bottom d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+          &copy; 2026 VIVA - LIVE BETTER. All rights reserved. (Smart E-Commerce Decision Support System)
+        </div>
+        <div class="footer-bottom-links">
+          <a href="{{ url_for('customer.privacy') }}">Privacy Policy</a>
+          <a href="{{ url_for('customer.terms') }}">Terms of Service</a>
+          <a href="{{ url_for('customer.privacy') }}">Cookie Policy</a>
+          <span class="text-white-50"><i class="bi bi-globe me-1"></i> India (₹ INR)</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Main Application JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

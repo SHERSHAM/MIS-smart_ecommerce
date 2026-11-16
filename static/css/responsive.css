@@ -1,0 +1,170 @@
+/* ==========================================================================
+   VIVA - Responsive Stylesheet
+   Mobile, Tablet, and Desktop Breakpoint Optimizations
+   ========================================================================== */
+
+@media (max-width: 1199.98px) {
+  .hero-title {
+    font-size: 2.85rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .hero-banner-card {
+    padding: 36px 28px;
+  }
+  
+  .hero-title {
+    font-size: 2.4rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .hero-sale-badge {
+    top: 20px;
+    right: 20px;
+    padding: 8px 14px;
+  }
+
+  .hero-sale-badge .sale-discount {
+    font-size: 1.2rem;
+  }
+
+  .header-search-form {
+    max-width: 100%;
+    margin: 12px 0 6px;
+  }
+
+  .newsletter-box {
+    padding: 32px 24px;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+    margin-top: 20px;
+  }
+
+  .newsletter-btn {
+    width: 100%;
+  }
+
+  .benefits-section .benefit-item {
+    margin-bottom: 20px;
+  }
+
+  .promo-banner-card {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .top-announcement-bar {
+    font-size: 0.72rem;
+    text-align: center;
+  }
+
+  .top-announcement-bar .separator {
+    margin: 0 6px;
+  }
+
+  .brand-name {
+    font-size: 1.45rem;
+  }
+
+  .brand-tagline {
+    font-size: 0.6rem;
+  }
+
+  .hero-banner-card {
+    padding: 28px 18px;
+    text-align: center;
+  }
+
+  .hero-title {
+    font-size: 1.95rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.95rem;
+    margin: 0 auto 24px;
+  }
+
+  .hero-trust-badges {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .hero-sale-badge {
+    position: static;
+    display: inline-block;
+    margin-bottom: 20px;
+  }
+
+  .hero-image-wrap {
+    min-height: auto;
+    margin-top: 24px;
+  }
+
+  .hero-img {
+    max-height: 280px;
+  }
+
+  .category-circle-icon {
+    width: 62px;
+    height: 62px;
+    font-size: 1.35rem;
+  }
+
+  .category-circle-title {
+    font-size: 0.75rem;
+  }
+
+  .section-title {
+    font-size: 1.4rem;
+  }
+
+  .product-img-wrap {
+    height: 170px;
+  }
+
+  .newsletter-icon-wrap {
+    margin: 0 auto 16px;
+  }
+
+  .newsletter-box {
+    text-align: center;
+  }
+
+  .newsletter-privacy {
+    justify-content: center;
+  }
+
+  .footer-bottom {
+    text-align: center;
+  }
+
+  .footer-bottom-links {
+    justify-content: center;
+    margin-top: 14px;
+  }
+
+  .app-badge-btn {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .header-actions-wrap {
+    gap: 4px;
+  }
+
+  .header-action-label {
+    display: none;
+  }
+
+  .header-action-item {
+    padding: 6px;
+  }
+}

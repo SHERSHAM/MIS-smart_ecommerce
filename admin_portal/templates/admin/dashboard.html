@@ -1,0 +1,250 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Executive Overview | VIVA MIS Dashboard{% endblock %}
+{% block page_heading %}Executive Overview{% endblock %}
+
+{% block content %}
+<!-- =========================================================================
+     EXECUTIVE KPI METRIC CARDS (MATCHING REFERENCE DESIGN)
+     ========================================================================= -->
+<div class="row g-3 mb-4">
+  <!-- Card 1: Net Revenue -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="kpi-label">Net Store Revenue</span>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(163,230,53,0.12); color: var(--admin-neon); display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-currency-rupee fs-5"></i>
+        </div>
+      </div>
+      <div class="kpi-value">₹{{ "{:,.0f}".format(kpis.total_revenue) }}</div>
+      <div class="mt-auto">
+        {% if kpis.revenue_growth_pct >= 0 %}
+          <span class="kpi-trend trend-up">
+            <i class="bi bi-arrow-up-right"></i> +{{ kpis.revenue_growth_pct }}% vs last month
+          </span>
+        {% else %}
+          <span class="kpi-trend trend-down">
+            <i class="bi bi-arrow-down-right"></i> {{ kpis.revenue_growth_pct }}% vs last month
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: Total Orders -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="kpi-label">Total Customer Orders</span>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(34,197,94,0.12); color: var(--admin-emerald); display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-bag-check fs-5"></i>
+        </div>
+      </div>
+      <div class="kpi-value">{{ kpis.total_orders }}</div>
+      <div class="mt-auto">
+        <span class="small text-muted">
+          <strong class="text-warning">{{ kpis.pending_orders }}</strong> orders currently processing
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: Customers & Retention -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="kpi-label">Customer Base</span>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(6,182,212,0.12); color: var(--admin-info); display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-people fs-5"></i>
+        </div>
+      </div>
+      <div class="kpi-value">{{ kpis.total_customers }}</div>
+      <div class="mt-auto">
+        <span class="kpi-trend" style="background: rgba(6,182,212,0.12); color: var(--admin-info);">
+          <i class="bi bi-arrow-repeat"></i> {{ customer_kpis.repeat_rate_pct }}% repeat buyer rate
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4: Catalog & Stock Health -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="kpi-label">Inventory & Catalog</span>
+        <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(245,158,11,0.12); color: var(--admin-warning); display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-box-seam fs-5"></i>
+        </div>
+      </div>
+      <div class="kpi-value">{{ kpis.total_products }} <span class="fs-6 text-muted fw-normal">SKUs</span></div>
+      <div class="mt-auto">
+        {% if kpis.low_stock_products > 0 %}
+          <span class="kpi-trend trend-down">
+            <i class="bi bi-exclamation-triangle"></i> {{ kpis.low_stock_products }} low stock alerts
+          </span>
+        {% else %}
+          <span class="kpi-trend trend-up">
+            <i class="bi bi-check-circle"></i> Stock levels healthy
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================================
+     CHARTS SECTION (LINE & DONUT)
+     ========================================================================= -->
+<div class="row g-4 mb-4">
+  <!-- Monthly Revenue Line Chart -->
+  <div class="col-12 col-lg-8">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <div>
+          <h6 class="admin-card-title">Monthly Revenue Performance</h6>
+          <span class="small text-muted">Sales and revenue growth trajectory</span>
+        </div>
+        <div class="d-flex gap-2">
+          <span class="admin-badge admin-badge-neon">Actual MySQL Orders</span>
+        </div>
+      </div>
+      <div style="height: 290px;">
+        <canvas id="monthlyRevenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Sales Donut Chart -->
+  <div class="col-12 col-lg-4">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <div>
+          <h6 class="admin-card-title">Sales by Category</h6>
+          <span class="small text-muted">Share of total sales revenue</span>
+        </div>
+      </div>
+      <div style="height: 290px;">
+        <canvas id="categoryDonutChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================================
+     TOP BEST SELLERS & RECENT ORDERS TABLE
+     ========================================================================= -->
+<div class="row g-4">
+  <!-- Top 5 Best Sellers -->
+  <div class="col-12 col-lg-5">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <h6 class="admin-card-title">Top-Selling Products</h6>
+        <a href="{{ url_for('admin_analytics.analytics_overview') }}" class="small text-muted text-decoration-none">
+          Full Ranking <i class="bi bi-chevron-right"></i>
+        </a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Product</th>
+              <th>Sold</th>
+              <th class="text-end">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for prod in top_products %}
+            <tr>
+              <td>
+                <span class="badge rounded-circle p-2" style="background: rgba(163,230,53,0.15); color: var(--admin-neon); font-family: monospace;">
+                  #{{ prod.sales_rank }}
+                </span>
+              </td>
+              <td>
+                <div class="fw-bold text-truncate" style="max-width: 160px;">{{ prod.name }}</div>
+                <span class="small text-muted">{{ prod.category_name }}</span>
+              </td>
+              <td class="fw-semibold text-white">{{ prod.total_units_sold }}</td>
+              <td class="text-end fw-bold" style="color: var(--admin-neon);">
+                ₹{{ "{:,.0f}".format(prod.total_revenue_generated) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Orders Table -->
+  <div class="col-12 col-lg-7">
+    <div class="admin-card h-100">
+      <div class="admin-card-header">
+        <h6 class="admin-card-title">Recent Customer Orders</h6>
+        <a href="{{ url_for('admin_order.order_list') }}" class="small text-muted text-decoration-none">
+          View All Orders <i class="bi bi-chevron-right"></i>
+        </a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in recent_orders %}
+            <tr>
+              <td>
+                <span class="font-monospace fw-semibold" style="color: var(--admin-neon); font-size: 0.8rem;">
+                  {{ order.order_number }}
+                </span>
+                <div class="small text-muted">{{ order.created_at.strftime('%d %b, %H:%M') if order.created_at else '' }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ order.delivery_name }}</div>
+                <span class="small text-muted">{{ order.delivery_email }}</span>
+              </td>
+              <td class="fw-bold">₹{{ "{:,.0f}".format(order.total) }}</td>
+              <td>
+                {% if order.status == 'Delivered' %}
+                  <span class="admin-badge admin-badge-success">{{ order.status }}</span>
+                {% elif order.status in ('Confirmed', 'Processing') %}
+                  <span class="admin-badge admin-badge-neon">{{ order.status }}</span>
+                {% elif order.status == 'Cancelled' %}
+                  <span class="admin-badge admin-badge-danger">{{ order.status }}</span>
+                {% else %}
+                  <span class="admin-badge admin-badge-warning">{{ order.status }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <a href="{{ url_for('admin_order.order_detail', order_id=order.id) }}" class="btn btn-sm btn-admin-outline py-1 px-2">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Pass dynamic datasets from Flask backend to Chart.js
+  window.monthlyRevenueData = {{ monthly_trend|tojson }};
+  window.categorySalesData = {{ category_dist|tojson }};
+  window.orderStatusData = {{ status_dist|tojson }};
+</script>
+{% endblock %}

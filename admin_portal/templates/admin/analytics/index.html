@@ -1,0 +1,287 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}MIS Decision Analytics - VIVA Executive Portal{% endblock %}
+{% block page_heading %}MIS Decision Analytics{% endblock %}
+
+{% block content %}
+<!-- Timeframe Filter Toolbar -->
+<div class="admin-card mb-4 py-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-secondary small fw-semibold text-uppercase"><i
+                    class="bi bi-funnel me-1 text-success"></i>Time Window:</span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a href="{{ url_for('admin_analytics.analytics_overview') }}"
+                    class="btn {% if not days_filter %}btn-admin-neon{% else %}btn-admin-outline{% endif %}">All
+                    Time</a>
+                <a href="{{ url_for('admin_analytics.analytics_overview', days=7) }}"
+                    class="btn {% if days_filter == 7 %}btn-admin-neon{% else %}btn-admin-outline{% endif %}">Last 7
+                    Days</a>
+                <a href="{{ url_for('admin_analytics.analytics_overview', days=30) }}"
+                    class="btn {% if days_filter == 30 %}btn-admin-neon{% else %}btn-admin-outline{% endif %}">Last 30
+                    Days</a>
+                <a href="{{ url_for('admin_analytics.analytics_overview', days=90) }}"
+                    class="btn {% if days_filter == 90 %}btn-admin-neon{% else %}btn-admin-outline{% endif %}">Last 90
+                    Days</a>
+            </div>
+        </div>
+        <div class="text-secondary small">
+            <i class="bi bi-clock-history me-1"></i> Data aggregated in real-time from active relational transactions
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <!-- Revenue Trend Chart -->
+    <div class="col-lg-8">
+        <div class="admin-card h-100 mb-0">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 fw-bold text-white"><i class="bi bi-graph-up me-2 text-success"></i>Revenue Trajectory
+                    Trend</h6>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">12-Month
+                    Performance</span>
+            </div>
+            <div style="height: 280px; position: relative;">
+                <canvas id="revenueTrendChart" data-trend='{{ monthly_trend|tojson }}'></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Contribution Chart -->
+    <div class="col-lg-4">
+        <div class="admin-card h-100 mb-0 d-flex flex-column justify-content-between">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 fw-bold text-white"><i class="bi bi-pie-chart me-2 text-success"></i>Category Share</h6>
+                <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">Portfolio</span>
+            </div>
+            <div style="height: 220px; position: relative;">
+                <canvas id="categoryDistChart" data-category='{{ category_dist|tojson }}'></canvas>
+            </div>
+            <div class="mt-3 text-center small text-secondary">
+                Top categories driving majority of gross merchandise value (GMV)
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top 10 Best Sellers Table -->
+<div class="admin-card p-0 mb-4">
+    <div class="d-flex justify-content-between align-items-center p-4 border-bottom"
+        style="border-color: var(--admin-border) !important;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-trophy-fill text-warning fs-5"></i>
+            <h6 class="mb-0 fw-bold text-white">Top 10 Best Selling Products (Velocity Leaders)</h6>
+        </div>
+        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">High Margin
+            Drivers</span>
+    </div>
+    <div class="p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary small">
+                        <th>Rank</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Units Sold</th>
+                        <th>Total Gross Revenue</th>
+                        <th>Current Stock</th>
+                        <th>Rating</th>
+                        <th>Velocity Assessment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in top_sellers %}
+                    <tr>
+                        <td>
+                            {% if loop.index == 1 %}
+                            <span class="badge bg-warning text-dark fw-bold">#1 Leader</span>
+                            {% elif loop.index <= 3 %} <span class="badge bg-success fw-bold">#{{ loop.index }}</span>
+                                {% else %}
+                                <span class="text-secondary fw-semibold">#{{ loop.index }}</span>
+                                {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if p.image_url %}
+                                <img src="{{ p.image_url }}" alt="{{ p.name }}" class="rounded"
+                                    style="width: 36px; height: 36px; object-fit: cover;">
+                                {% endif %}
+                                <span class="fw-semibold text-white">{{ p.name }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-dark text-secondary border border-secondary border-opacity-25">{{
+                                p.category_name }}</span></td>
+                        <td class="text-white fw-bold">{{ p.units_sold }} units</td>
+                        <td class="text-success fw-bold">₹{{ "{:,.2f}".format(p.total_revenue) }}</td>
+                        <td>
+                            <span class="{% if p.stock < 15 %}text-danger fw-bold{% else %}text-secondary{% endif %}">
+                                {{ p.stock }} on hand
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-warning small"><i class="bi bi-star-fill me-1"></i>{{ p.rating or 4.5
+                                }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success bg-opacity-25 text-success">
+                                <i class="bi bi-lightning-charge me-1"></i> Prime Seller
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-secondary">No sales recorded for the selected
+                            timeframe.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Slow-Moving Products & Actionable Business Advice -->
+<div class="admin-card p-0 border-warning border-opacity-25">
+    <div class="d-flex justify-content-between align-items-center p-4 border-bottom"
+        style="border-color: var(--admin-border) !important;">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-hourglass-split text-warning fs-5"></i>
+            <div>
+                <h6 class="mb-0 fw-bold text-white">Slow-Moving Products & Dead Stock Alert (30-Day Window)</h6>
+                <div class="text-secondary small">Inventory tying up working capital with &le; 1 unit sold in the last
+                    30 days</div>
+            </div>
+        </div>
+        <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25">{{
+            slow_movers|length }} Flagged SKUs</span>
+    </div>
+    <div class="p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary small">
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Current On-Hand</th>
+                        <th>30-Day Units Sold</th>
+                        <th>Locked Capital</th>
+                        <th>MIS Prescriptive Recommendation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in slow_movers %}
+                    <tr>
+                        <td class="fw-semibold text-white">{{ p.name }}</td>
+                        <td><span class="badge bg-dark text-secondary border border-secondary border-opacity-25">{{
+                                p.category_name }}</span></td>
+                        <td class="text-white">₹{{ "{:,.2f}".format(p.price) }}</td>
+                        <td><span class="text-warning fw-semibold">{{ p.stock }} units</span></td>
+                        <td><span class="badge bg-secondary">{{ p.recent_sales }} sold</span></td>
+                        <td class="text-danger fw-bold">₹{{ "{:,.2f}".format(p.locked_capital) }}</td>
+                        <td>
+                            <div class="p-2 rounded bg-black border border-secondary border-opacity-25 small text-info">
+                                <i class="bi bi-lightbulb-fill text-warning me-1"></i>
+                                {{ p.recommendation }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-success">
+                            <i class="bi bi-check-circle me-1"></i> Excellent inventory velocity! No slow-moving items
+                            detected.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Revenue Trend Chart
+        const revCanvas = document.getElementById('revenueTrendChart');
+        if (revCanvas) {
+            const trendData = JSON.parse(revCanvas.dataset.trend || '{}');
+            new Chart(revCanvas, {
+                type: 'line',
+                data: {
+                    labels: trendData.labels || [],
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: trendData.revenues || trendData.values || [],
+                        borderColor: '#A3E635',
+                        backgroundColor: 'rgba(163, 230, 53, 0.12)',
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#A3E635',
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) { return 'Revenue: ₹' + Number(ctx.raw).toLocaleString(); }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { color: '#26332E' }, ticks: { color: '#9CA3AF' } },
+                        y: {
+                            grid: { color: '#26332E' },
+                            ticks: {
+                                color: '#9CA3AF',
+                                callback: function (v) { return '₹' + v.toLocaleString(); }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Category Distribution Chart
+        const catCanvas = document.getElementById('categoryDistChart');
+        if (catCanvas) {
+            const catData = JSON.parse(catCanvas.dataset.category || '[]');
+            new Chart(catCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: catData.map(c => c.category_name || c.name || 'Uncategorized'),
+                    datasets: [{
+                        data: catData.map(c => Number(c.total_sales || c.total_revenue || 0)),
+                        backgroundColor: ['#A3E635', '#22C55E', '#06B6D4', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B', '#64748B'],
+                        borderWidth: 2,
+                        borderColor: '#151C19'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#D1D5DB', boxWidth: 10, font: { size: 11 } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    return ctx.label + ': ₹' + Number(ctx.raw).toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="card border-0 shadow-sm p-4 p-md-5 mx-auto" style="max-width: 860px; border-radius: var(--viva-radius-lg); background-color: var(--viva-white);">
+    <h1 class="h2 fw-bold mb-4 font-serif" style="color: var(--viva-forest-dark);">{{ title }}</h1>
+    
+    <div class="text-muted" style="line-height: 1.8; font-size: 1.05rem;">
+      <p class="lead text-dark">{{ content }}</p>
+      
+      <h5 class="fw-bold mt-4 mb-2 text-dark">Our Promise</h5>
+      <p>At VIVA, we curate sustainable, premium lifestyle products designed for thoughtful living. Every item is inspected for quality, craftsmanship, and aesthetic harmony.</p>
+
+      <h5 class="fw-bold mt-4 mb-2 text-dark">Customer Support</h5>
+      <p>Need assistance with an order, return, or recommendation? Our dedicated support team is available 24/7 at <a href="mailto:support@viva.com">support@viva.com</a> or call toll-free at <strong>1800-VIVA-HELP</strong>.</p>
+    </div>
+
+    <div class="mt-5 pt-3 border-top">
+      <a href="{{ url_for('customer.home') }}" class="btn btn-viva-outline">
+        <i class="bi bi-arrow-left me-2"></i> Return to Homepage
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

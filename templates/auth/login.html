@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-5">
+      <div class="card border-0 shadow-lg p-4 p-md-5" style="border-radius: var(--viva-radius-lg); background-color: var(--viva-white);">
+        <div class="text-center mb-4">
+          <div class="brand-icon-box mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.6rem;">
+            <i class="bi bi-bag-heart"></i>
+          </div>
+          <h2 class="h3 fw-bold mb-1" style="color: var(--viva-forest-dark);">Welcome Back</h2>
+          <p class="text-muted small">Sign in to your VIVA account to manage your orders & cart.</p>
+        </div>
+
+        <form action="{{ url_for('auth.login', next=request.args.get('next')) }}" method="POST">
+          <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Email Address *</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0" style="border-radius: 10px 0 0 10px;"><i class="bi bi-envelope text-muted"></i></span>
+              <input type="email" name="email" class="form-control form-control-viva border-start-0" placeholder="name@example.com" value="{{ email or '' }}" style="border-radius: 0 10px 10px 0;" required autofocus>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label small fw-semibold mb-0">Password *</label>
+              <a href="{{ url_for('auth.forgot_password') }}" class="small text-muted">Forgot password?</a>
+            </div>
+            <div class="input-group mt-1">
+              <span class="input-group-text bg-light border-end-0" style="border-radius: 10px 0 0 10px;"><i class="bi bi-lock text-muted"></i></span>
+              <input type="password" name="password" class="form-control form-control-viva border-start-0" placeholder="Enter your password" style="border-radius: 0 10px 10px 0;" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-viva-primary w-100 py-3 mt-3 text-center justify-content-center">
+            <span>Sign In</span>
+            <i class="bi bi-box-arrow-in-right ms-2"></i>
+          </button>
+        </form>
+
+        <div class="text-center mt-4 pt-3 border-top small text-muted">
+          Don't have an account yet? 
+          <a href="{{ url_for('auth.register', next=request.args.get('next')) }}" class="fw-bold text-success text-decoration-underline ms-1">Create an Account</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

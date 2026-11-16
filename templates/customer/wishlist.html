@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}My Wishlist | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 fw-bold m-0" style="color: var(--viva-forest-dark);">My Saved Wishlist</h1>
+    <span class="text-muted fw-semibold">{{ items|length }} item{% if items|length != 1 %}s{% endif %}</span>
+  </div>
+
+  {% if items %}
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for item in items %}
+    <div class="col">
+      <div class="card h-100 border-0 shadow-sm p-3 position-relative" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <!-- Remove button -->
+        <form action="{{ url_for('wishlist.remove_from_wishlist') }}" method="POST" class="position-absolute top-0 end-0 m-3" style="z-index: 2;">
+          <input type="hidden" name="product_id" value="{{ item.product_id }}">
+          <button type="submit" class="btn btn-sm btn-light rounded-circle shadow-sm" title="Remove from wishlist">
+            <i class="bi bi-x-lg text-danger"></i>
+          </button>
+        </form>
+
+        <!-- Product Image -->
+        <a href="{{ url_for('product.product_detail', product_id=item.product_id) }}" class="product-img-wrap mb-3">
+          <img src="{{ item.image_url }}" alt="{{ item.name }}" class="product-img" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';">
+        </a>
+
+        <!-- Category & Title -->
+        <span class="product-category-tag">{{ item.category_name }}</span>
+        <h5 class="product-title">
+          <a href="{{ url_for('product.product_detail', product_id=item.product_id) }}">{{ item.name }}</a>
+        </h5>
+
+        <!-- Price -->
+        <div class="product-price-box mb-3">
+          {% if item.discount_price %}
+            <span class="current-price">₹{{ "%.0f"|format(item.discount_price) }}</span>
+            <span class="original-price">₹{{ "%.0f"|format(item.price) }}</span>
+          {% else %}
+            <span class="current-price">₹{{ "%.0f"|format(item.price) }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Stock Status & Move to Cart Button -->
+        <div class="mt-auto">
+          {% if item.stock > 0 %}
+            <form action="{{ url_for('wishlist.move_to_cart') }}" method="POST">
+              <input type="hidden" name="product_id" value="{{ item.product_id }}">
+              <button type="submit" class="btn btn-viva-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-cart-plus"></i> Move to Cart
+              </button>
+            </form>
+          {% else %}
+            <button class="btn btn-secondary w-100 py-2" disabled>Out of Stock</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty State -->
+  <div class="card border-0 shadow-sm p-5 text-center my-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+    <div class="mb-3">
+      <i class="bi bi-heart display-1 text-muted"></i>
+    </div>
+    <h3 class="fw-bold mb-2">Your Wishlist is Empty</h3>
+    <p class="text-muted mb-4">You haven't saved any items yet. Browse products and click the heart icon to save your favorites!</p>
+    <div>
+      <a href="{{ url_for('product.shop') }}" class="btn btn-viva-primary px-4 py-2">
+        <i class="bi bi-bag-fill me-2"></i> Explore Products
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

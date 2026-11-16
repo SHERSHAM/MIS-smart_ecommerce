@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="h2 fw-bold mb-4" style="color: var(--viva-forest-dark);">Checkout</h1>
+
+  <form action="{{ url_for('checkout.place_order') }}" method="POST" id="checkout-form">
+    <div class="row g-4">
+      <!-- Left Column: Delivery Address & Payment Method -->
+      <div class="col-12 col-lg-8">
+        <!-- 1. Delivery Information Card -->
+        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+          <h5 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color: var(--viva-forest-dark);">
+            <i class="bi bi-geo-alt-fill text-success"></i> 1. Delivery Information
+          </h5>
+
+          {% if addresses %}
+          <div class="mb-4">
+            <h6 class="fw-bold small text-muted text-uppercase mb-3">Choose a Saved Address:</h6>
+            <div class="row g-3">
+              {% for addr in addresses %}
+              <div class="col-12 col-md-6">
+                <div class="form-check p-3 border rounded-3 h-100 {% if addr.is_default %}border-success bg-light{% endif %}">
+                  <input class="form-check-input" type="radio" name="address_id" id="addr-{{ addr.id }}" value="{{ addr.id }}" {% if loop.first %}checked{% endif %} onchange="toggleNewAddress(false);">
+                  <label class="form-check-label w-100 ms-2" for="addr-{{ addr.id }}">
+                    <strong class="d-block">{{ addr.full_name }}</strong>
+                    <span class="small text-muted d-block">{{ addr.phone }}</span>
+                    <span class="small text-muted d-block">{{ addr.address_line1 }}{% if addr.address_line2 %}, {{ addr.address_line2 }}{% endif %}</span>
+                    <span class="small text-muted d-block">{{ addr.city }}, {{ addr.state }} - {{ addr.pincode }}</span>
+                    {% if addr.is_default %}
+                      <span class="badge bg-success-subtle text-success mt-1">Default Address</span>
+                    {% endif %}
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="radio" name="address_id" id="addr-new" value="" onchange="toggleNewAddress(true);">
+              <label class="form-check-label ms-2 fw-semibold" for="addr-new">
+                + Deliver to a different address
+              </label>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- New Address Fields Form -->
+          <div id="new-address-fields" class="{% if addresses %}d-none{% endif %}">
+            <h6 class="fw-bold small text-muted text-uppercase mb-3">Delivery Address Details:</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Full Name *</label>
+                <input type="text" name="full_name" class="form-control form-control-viva" value="{{ customer.full_name if customer else '' }}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Phone Number *</label>
+                <input type="tel" name="phone" class="form-control form-control-viva" value="{{ customer.phone if customer else '' }}" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Email (for order updates) *</label>
+                <input type="email" name="email" class="form-control form-control-viva" value="{{ customer.email if customer else '' }}" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Address Line 1 (House No., Building, Street) *</label>
+                <input type="text" name="address_line1" class="form-control form-control-viva" placeholder="e.g. Flat 402, Green Valley Apartments" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Address Line 2 (Area, Landmark) - Optional</label>
+                <input type="text" name="address_line2" class="form-control form-control-viva" placeholder="e.g. Near City Park">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">City *</label>
+                <input type="text" name="city" class="form-control form-control-viva" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">State *</label>
+                <input type="text" name="state" class="form-control form-control-viva" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">PIN Code *</label>
+                <input type="text" name="pincode" class="form-control form-control-viva" pattern="[0-9]{6}" title="6 digits PIN code" required>
+              </div>
+              <div class="col-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="save_address" id="save-address" checked>
+                  <label class="form-check-label small" for="save-address">
+                    Save this address to my profile for future purchases
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Payment Method Card -->
+        <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+          <h5 class="fw-bold mb-3 d-flex align-items-center gap-2" style="color: var(--viva-forest-dark);">
+            <i class="bi bi-credit-card-2-front-fill text-success"></i> 2. Payment Method
+          </h5>
+
+          <div class="row g-3 mb-3">
+            <!-- Cash on Delivery -->
+            <div class="col-12 col-md-6">
+              <div class="form-check p-3 border rounded-3 h-100">
+                <input class="form-check-input" type="radio" name="payment_method" id="pay-cod" value="COD" checked>
+                <label class="form-check-label ms-2" for="pay-cod">
+                  <strong class="d-block"><i class="bi bi-cash-stack text-success me-2"></i>Cash on Delivery (COD)</strong>
+                  <span class="small text-muted">Pay in cash or UPI to the delivery partner when your order arrives.</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Simulated Online Payment -->
+            <div class="col-12 col-md-6">
+              <div class="form-check p-3 border rounded-3 h-100">
+                <input class="form-check-input" type="radio" name="payment_method" id="pay-online" value="Online">
+                <label class="form-check-label ms-2" for="pay-online">
+                  <strong class="d-block"><i class="bi bi-wallet2 text-primary me-2"></i>Simulated Online Payment</strong>
+                  <span class="small text-muted">Demonstration payment mode (Instant simulated confirmation).</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Academic Disclaimer Notice -->
+          <div class="alert alert-warning border-0 small d-flex align-items-center mb-0">
+            <i class="bi bi-shield-exclamation fs-4 me-3 text-warning"></i>
+            <div>
+              <strong>Academic Project Notice:</strong> This is a decision support educational simulation. No actual bank credentials, credit card details, or real payments will ever be charged.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary & Place Order Button -->
+      <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm p-4 position-sticky" style="top: 24px; border-radius: var(--viva-radius); background-color: var(--viva-white);">
+          <h5 class="fw-bold mb-3" style="color: var(--viva-forest-dark);">Order Summary</h5>
+
+          <!-- Items Mini List -->
+          <div class="mb-3" style="max-height: 240px; overflow-y: auto;">
+            {% for item in items %}
+            <div class="d-flex align-items-center gap-3 py-2 border-bottom">
+              <img src="{{ item.image_url }}" alt="{{ item.name }}" class="rounded-2" style="width: 48px; height: 48px; object-fit: cover;">
+              <div class="flex-grow-1 small">
+                <div class="fw-bold text-truncate" style="max-width: 170px;">{{ item.name }}</div>
+                <span class="text-muted">Qty: {{ item.quantity }} × ₹{{ "%.0f"|format(item.effective_price) }}</span>
+              </div>
+              <span class="fw-bold small">₹{{ "%.0f"|format(item.item_total) }}</span>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Totals Breakdown -->
+          <div class="d-flex justify-content-between py-2 border-bottom small">
+            <span class="text-muted">Subtotal</span>
+            <span class="fw-semibold">₹{{ "%.0f"|format(subtotal) }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between py-2 border-bottom small">
+            <span class="text-muted">Shipping Fee</span>
+            <span>
+              {% if shipping == 0 %}
+                <span class="text-success fw-bold">FREE</span>
+              {% else %}
+                <span class="fw-semibold">₹{{ "%.0f"|format(shipping) }}</span>
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between py-3 mb-3">
+            <span class="fs-5 fw-bold" style="color: var(--viva-forest-dark);">Total Amount</span>
+            <span class="fs-5 fw-bold text-success">₹{{ "%.0f"|format(total) }}</span>
+          </div>
+
+          <button type="submit" class="btn btn-viva-primary w-100 py-3 text-center justify-content-center">
+            <i class="bi bi-bag-check me-2"></i>
+            <span>Place Order Now</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleNewAddress(show) {
+  const fields = document.getElementById('new-address-fields');
+  const requiredInputs = fields.querySelectorAll('input[required]');
+  if (show) {
+    fields.classList.remove('d-none');
+    requiredInputs.forEach(i => i.setAttribute('required', 'required'));
+  } else {
+    fields.classList.add('d-none');
+    requiredInputs.forEach(i => i.removeAttribute('required'));
+  }
+}
+</script>
+{% endblock %}

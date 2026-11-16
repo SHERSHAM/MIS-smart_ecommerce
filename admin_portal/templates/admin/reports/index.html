@@ -1,0 +1,99 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}{{ report_title }} - VIVA Executive Reports{% endblock %}
+{% block page_heading %}Executive Business Reports{% endblock %}
+
+{% block content %}
+<!-- Controls & Filter Card -->
+<div class="admin-card mb-4">
+    <form method="GET" action="{{ url_for('admin_report.report_view') }}" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label text-secondary small fw-semibold">Select Report Type</label>
+            <select name="type" class="form-select bg-black text-white border-secondary" onchange="this.form.submit()">
+                {% for key, name in report_names.items() %}
+                <option value="{{ key }}" {% if report_type == key %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-secondary small fw-semibold">Start Date</label>
+            <input type="date" name="start_date" value="{{ start_date or '' }}" class="form-control bg-black text-white border-secondary">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label text-secondary small fw-semibold">End Date</label>
+            <input type="date" name="end_date" value="{{ end_date or '' }}" class="form-control bg-black text-white border-secondary">
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button type="submit" class="btn btn-admin-neon w-100 fw-bold">
+                <i class="bi bi-filter me-1"></i> Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Report Display Container -->
+<div class="admin-card p-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 p-4 border-bottom" style="border-color: var(--admin-border) !important;">
+        <div>
+            <h5 class="mb-1 fw-bold text-white"><i class="bi bi-file-earmark-spreadsheet me-2 text-success"></i>{{ report_title }}</h5>
+            <div class="text-secondary small">
+                {% if start_date and end_date %}
+                Filtered period: {{ start_date }} to {{ end_date }} &bull; {{ data|length }} records found
+                {% else %}
+                All historical time period &bull; {{ data|length }} records found
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button onclick="window.print()" class="btn btn-admin-outline btn-sm">
+                <i class="bi bi-printer me-1"></i> Print / Save PDF
+            </button>
+            <a href="{{ url_for('admin_report.export_csv', type=report_type, start_date=start_date, end_date=end_date) }}" class="btn btn-admin-neon btn-sm fw-bold">
+                <i class="bi bi-download me-1"></i> Export to CSV
+            </a>
+        </div>
+    </div>
+    <div class="p-0">
+        {% if data and data|length > 0 %}
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary small">
+                        {% for col in columns %}
+                        <th class="text-uppercase py-3 ps-3">{{ col.label if col.label is defined else col.replace('_', ' ') }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        {% for col in columns %}
+                        {% set col_key = col.key if col.key is defined else col %}
+                        {% set val = row[col_key] %}
+                        <td class="ps-3 {% if 'revenue' in col_key or 'amount' in col_key or 'spend' in col_key or 'price' in col_key or 'value' in col_key or 'sales' in col_key %}text-success fw-semibold{% elif 'id' in col_key or 'code' in col_key %}text-secondary font-monospace{% elif 'status' in col_key %}fw-bold{% else %}text-light{% endif %}">
+                            {% if val is none %}
+                                -
+                            {% elif 'revenue' in col_key or 'amount' in col_key or 'spend' in col_key or 'price' in col_key or 'value' in col_key or 'sales' in col_key %}
+                                ₹{{ "{:,.2f}".format(val|float) if val is number else val }}
+                            {% elif 'rate' in col_key or 'pct' in col_key %}
+                                {{ val }}%
+                            {% else %}
+                                {{ val }}
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-inbox text-secondary fs-1 mb-2"></i>
+            <h6 class="text-white fw-bold">No Records Found</h6>
+            <p class="text-secondary small">No transactions or records match the selected date parameters for this report.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

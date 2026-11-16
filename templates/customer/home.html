@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}VIVA – Live Better | Elevate Your Everyday{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- =========================================================================
+       D. HERO BANNER
+       ========================================================================= -->
+  <section class="hero-banner-container">
+    <div class="hero-banner-card">
+      <!-- Promotional Badge -->
+      <div class="hero-sale-badge">
+        <span class="sale-tag">Summer Sale</span>
+        <div class="sale-discount">UP TO 40%</div>
+        <span class="sale-off">OFF</span>
+      </div>
+
+      <div class="row align-items-center">
+        <!-- Left Hero Content -->
+        <div class="col-12 col-lg-6">
+          <h1 class="hero-title font-serif">Elevate Your Everyday</h1>
+          <p class="hero-subtitle">
+            Discover quality products across every category &ndash; thoughtfully curated and made for the way you live.
+          </p>
+          <a href="{{ url_for('product.shop') }}" class="btn-viva-primary">
+            <span>Shop Now</span>
+            <i class="bi bi-arrow-right"></i>
+          </a>
+
+          <!-- Trust Badges -->
+          <div class="hero-trust-badges">
+            <div class="trust-badge-item">
+              <i class="bi bi-award"></i>
+              <span>Premium Quality</span>
+            </div>
+            <div class="trust-badge-item">
+              <i class="bi bi-tag"></i>
+              <span>Great Prices</span>
+            </div>
+            <div class="trust-badge-item">
+              <i class="bi bi-people"></i>
+              <span>Trusted by 10k+ Customers</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Hero Image with Lifestyle Collage -->
+        <div class="col-12 col-lg-6 mt-4 mt-lg-0">
+          <div class="hero-image-wrap">
+            <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=600&fit=crop" 
+                 alt="VIVA Lifestyle Collection" 
+                 class="hero-img img-fluid"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1513094735237-8f2714d57c13?w=800&h=600&fit=crop';">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       E. PRODUCT CATEGORY SECTION (CIRCULAR VISUALS MATCHING REFERENCE)
+       ========================================================================= -->
+  <section class="categories-section">
+    <div class="category-scroll-container d-flex align-items-center justify-content-between gap-3 text-center">
+      {% for cat in categories %}
+      <a href="{{ url_for('product.shop', category=cat.id) }}" class="category-circle-item">
+        <div class="category-circle-icon category-color-{{ loop.index }}">
+          <img src="{{ cat.image }}" alt="{{ cat.name }}" class="category-circle-img" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1498049794561-7780e7231661?w=200&h=200&fit=crop';">
+        </div>
+        <span class="category-circle-title">{{ cat.name }}</span>
+      </a>
+      {% endfor %}
+
+      <!-- View All -->
+      <a href="{{ url_for('product.shop') }}" class="category-circle-item">
+        <div class="category-circle-icon category-view-all">
+          <i class="bi bi-grid-3x3-gap-fill text-success fs-3"></i>
+        </div>
+        <span class="category-circle-title">View All</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       F. TOP PICKS FOR YOU
+       ========================================================================= -->
+  <section class="top-picks-section py-4">
+    <div class="section-header">
+      <h2 class="section-title">Top Picks For You <span style="font-size: 1.5rem;">✨</span></h2>
+      <a href="{{ url_for('product.deals') }}" class="section-link">
+        <span>See All Deals</span>
+        <i class="bi bi-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
+      {% for product in featured_products[:5] %}
+      <div class="col">
+        <div class="product-card">
+          <!-- Discount Badge -->
+          {% if product.discount_price and product.price > product.discount_price %}
+            {% set discount_pct = (((product.price - product.discount_price) / product.price) * 100)|round|int %}
+            <span class="product-card-badge">-{{ discount_pct }}%</span>
+          {% endif %}
+
+          <!-- Wishlist Button -->
+          <button class="product-wishlist-btn ajax-add-to-wishlist" 
+                  data-product-id="{{ product.id }}" 
+                  title="Add to Wishlist">
+            <i class="bi bi-heart"></i>
+          </button>
+
+          <!-- Product Image -->
+          <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="product-img-wrap">
+            <img src="{{ product.image_url }}" 
+                 alt="{{ product.name }}" 
+                 class="product-img" 
+                 loading="lazy"
+                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';">
+          </a>
+
+          <!-- Details -->
+          <span class="product-category-tag">{{ product.category_name }}</span>
+          <h3 class="product-title">
+            <a href="{{ url_for('product.product_detail', product_id=product.id) }}">{{ product.name }}</a>
+          </h3>
+
+          <!-- Star Rating -->
+          <div class="product-rating">
+            <div class="stars">
+              {% for i in range(5) %}
+                {% if i < (product.rating|int) %}
+                  <i class="bi bi-star-fill"></i>
+                {% else %}
+                  <i class="bi bi-star"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <span class="review-count">({{ product.review_count|default(100) }})</span>
+          </div>
+
+          <!-- Price & Add Button -->
+          <div class="product-price-box">
+            <div>
+              {% if product.discount_price %}
+                <span class="current-price">₹{{ "%.0f"|format(product.discount_price) }}</span>
+                <span class="original-price">₹{{ "%.0f"|format(product.price) }}</span>
+              {% else %}
+                <span class="current-price">₹{{ "%.0f"|format(product.price) }}</span>
+              {% endif %}
+            </div>
+            <button class="product-add-btn ajax-add-to-cart" 
+                    data-product-id="{{ product.id }}" 
+                    title="Add to Cart">
+              <i class="bi bi-bag-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       G. PROMOTIONAL COLLECTION BANNERS (3 CARDS)
+       ========================================================================= -->
+  <section class="promo-banners-section">
+    <div class="row g-4">
+      <!-- 1. New Arrivals -->
+      <div class="col-12 col-md-4">
+        <div class="promo-banner-card promo-banner-1">
+          <div>
+            <span class="promo-badge-tag">New Arrivals</span>
+            <h4 class="promo-heading">Fresh Styles<br>Just In</h4>
+            <a href="{{ url_for('product.shop', sort='newest') }}" class="promo-link">
+              <span>Shop Now</span>
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+          <img src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=260&h=260&fit=crop" 
+               alt="New Arrivals" class="promo-img"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1551028719-00167b16eac5?w=260&h=260&fit=crop';">
+        </div>
+      </div>
+
+      <!-- 2. Home Refresh -->
+      <div class="col-12 col-md-4">
+        <div class="promo-banner-card promo-banner-2">
+          <div>
+            <span class="promo-badge-tag">Home Refresh</span>
+            <h4 class="promo-heading">Make Your<br>Space Better</h4>
+            <a href="{{ url_for('product.shop', category=3) }}" class="promo-link">
+              <span>Shop Now</span>
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+          <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=260&h=260&fit=crop" 
+               alt="Home Refresh" class="promo-img"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=260&h=260&fit=crop';">
+        </div>
+      </div>
+
+      <!-- 3. Tech Essentials -->
+      <div class="col-12 col-md-4">
+        <div class="promo-banner-card promo-banner-3">
+          <div>
+            <span class="promo-badge-tag">Tech Essentials</span>
+            <h4 class="promo-heading">Upgrade Your<br>Lifestyle</h4>
+            <a href="{{ url_for('product.shop', category=1) }}" class="promo-link">
+              <span>Shop Now</span>
+              <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+          <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=260&h=260&fit=crop" 
+               alt="Tech Essentials" class="promo-img"
+               onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=260&h=260&fit=crop';">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       H. CUSTOMER REVIEWS SECTION (LOVED BY THOUSANDS)
+       ========================================================================= -->
+  <section class="reviews-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Loved By Thousands <span style="color: #E11D48;">❤️</span></h2>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="fw-bold" style="color: var(--viva-forest-dark);">4.8/5 Average Rating</span>
+        <div class="stars">
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-fill"></i>
+          <i class="bi bi-star-half"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Review 1 -->
+      <div class="col-12 col-md-4">
+        <div class="review-card">
+          <div class="reviewer-meta">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" 
+                 alt="Sarah J." class="reviewer-avatar">
+            <div>
+              <h5 class="reviewer-name">Sarah J. <i class="bi bi-check-circle-fill reviewer-verified" title="Verified Buyer"></i></h5>
+              <div class="stars small">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </div>
+            </div>
+          </div>
+          <p class="review-text">
+            "Amazing quality and fast delivery! VIVA has become my go-to store for everything from skincare to daily home essentials."
+          </p>
+        </div>
+      </div>
+
+      <!-- Review 2 -->
+      <div class="col-12 col-md-4">
+        <div class="review-card">
+          <div class="reviewer-meta">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" 
+                 alt="Michael T." class="reviewer-avatar">
+            <div>
+              <h5 class="reviewer-name">Michael T. <i class="bi bi-check-circle-fill reviewer-verified" title="Verified Buyer"></i></h5>
+              <div class="stars small">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </div>
+            </div>
+          </div>
+          <p class="review-text">
+            "Great prices, excellent customer service, and super easy returns. Highly recommend VIVA to anyone looking for reliable products!"
+          </p>
+        </div>
+      </div>
+
+      <!-- Review 3 -->
+      <div class="col-12 col-md-4">
+        <div class="review-card">
+          <div class="reviewer-meta">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" 
+                 alt="Priya K." class="reviewer-avatar">
+            <div>
+              <h5 class="reviewer-name">Priya K. <i class="bi bi-check-circle-fill reviewer-verified" title="Verified Buyer"></i></h5>
+              <div class="stars small">
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+                <i class="bi bi-star-fill"></i>
+              </div>
+            </div>
+          </div>
+          <p class="review-text">
+            "I love the variety they offer! I can find everything in one place with transparent tracking and great packaging. So convenient!"
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       I. NEWSLETTER SUBSCRIPTION SECTION
+       ========================================================================= -->
+  <section class="newsletter-section">
+    <div class="newsletter-box">
+      <div class="row align-items-center">
+        <div class="col-12 col-lg-6 d-flex align-items-center">
+          <div class="newsletter-icon-wrap d-none d-sm-flex">
+            <i class="bi bi-envelope"></i>
+          </div>
+          <div>
+            <h3 class="newsletter-title font-serif">Stay in the Loop</h3>
+            <p class="newsletter-desc">
+              Get exclusive deals, new arrivals and style inspiration straight to your inbox.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-6 mt-4 mt-lg-0">
+          <form action="{{ url_for('customer.newsletter_subscribe') }}" method="POST" class="newsletter-form">
+            <input type="email" name="email" class="newsletter-input" placeholder="Enter your email address" required>
+            <button type="submit" class="newsletter-btn">Subscribe</button>
+          </form>
+          <div class="newsletter-privacy">
+            <i class="bi bi-lock-fill"></i>
+            <span>We respect your privacy. Unsubscribe anytime.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

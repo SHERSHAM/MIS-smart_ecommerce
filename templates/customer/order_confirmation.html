@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmed | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <div class="card border-0 shadow-sm p-4 p-md-5 mx-auto" style="max-width: 780px; border-radius: var(--viva-radius-lg); background-color: var(--viva-white);">
+    <!-- Success Icon -->
+    <div class="mb-3">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 80px; height: 80px; background-color: var(--viva-sage-light); color: var(--viva-forest);">
+        <i class="bi bi-check-lg display-4"></i>
+      </div>
+    </div>
+
+    <h1 class="h2 fw-bold mb-2" style="color: var(--viva-forest-dark);">Thank You For Your Order!</h1>
+    <p class="text-muted mb-4">
+      Your order has been placed successfully and is now being processed. We have sent a confirmation email to <strong>{{ order.delivery_email }}</strong>.
+    </p>
+
+    <!-- Order Metadata Pill -->
+    <div class="p-3 rounded-3 mb-4 text-start d-flex justify-content-between align-items-center flex-wrap gap-2" style="background-color: var(--viva-cream);">
+      <div>
+        <span class="small text-muted d-block">Order Number</span>
+        <strong class="fs-6 text-dark font-monospace">{{ order.order_number }}</strong>
+      </div>
+      <div>
+        <span class="small text-muted d-block">Order Status</span>
+        <span class="badge bg-success">{{ order.status }}</span>
+      </div>
+      <div>
+        <span class="small text-muted d-block">Payment Method</span>
+        <span class="fw-semibold text-dark">{{ order.payment_method }} ({{ order.payment_status }})</span>
+      </div>
+      <div>
+        <span class="small text-muted d-block">Total Paid / Due</span>
+        <strong class="fs-6 text-success">₹{{ "%.0f"|format(order.total) }}</strong>
+      </div>
+    </div>
+
+    <!-- Items Ordered -->
+    <div class="text-start mb-4">
+      <h6 class="fw-bold text-uppercase small text-muted mb-3">Items in This Order</h6>
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td style="width: 60px;">
+                <img src="{{ item.image_url }}" alt="{{ item.product_name }}" class="rounded-2" style="width: 50px; height: 50px; object-fit: cover;">
+              </td>
+              <td>
+                <span class="fw-semibold d-block">{{ item.product_name }}</span>
+                <span class="small text-muted">Quantity: {{ item.quantity }}</span>
+              </td>
+              <td class="text-end fw-bold">
+                ₹{{ "%.0f"|format(item.subtotal) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Delivery Address Summary -->
+    <div class="text-start p-3 rounded-3 border mb-4 bg-light">
+      <h6 class="fw-bold small text-muted text-uppercase mb-2">Delivery Destination</h6>
+      <p class="small mb-0 text-muted">
+        <strong>{{ order.delivery_name }}</strong> &bull; {{ order.delivery_phone }}<br>
+        {{ order.delivery_address }}<br>
+        {{ order.delivery_city }}, {{ order.delivery_state }} - {{ order.delivery_pincode }}
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{{ url_for('order.track_order', order_number=order.order_number) }}" class="btn btn-viva-primary px-4 py-2">
+        <i class="bi bi-geo-alt me-2"></i> Track Your Order
+      </a>
+      <a href="{{ url_for('product.shop') }}" class="btn btn-viva-outline px-4 py-2">
+        Continue Shopping
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

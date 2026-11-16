@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumbs -->
+  <nav aria-label="breadcrumb" class="breadcrumb-viva">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('customer.home') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('product.shop') }}">Shop</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('product.shop', category=product.category_id) }}">{{
+          product.category_name }}</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <!-- Product Main Section -->
+  <div class="card border-0 shadow-sm p-4 mb-5"
+    style="border-radius: var(--viva-radius-lg); background-color: var(--viva-white);">
+    <div class="row g-5">
+      <!-- Left Column: Product Image Gallery -->
+      <div class="col-12 col-md-6">
+        <div class="position-relative">
+          {% if product.discount_price and product.price > product.discount_price %}
+          {% set discount_pct = (((product.price - product.discount_price) / product.price) * 100)|round|int %}
+          <span class="product-card-badge" style="font-size: 0.85rem; padding: 6px 14px;">-{{ discount_pct }}%
+            OFF</span>
+          {% endif %}
+
+          <div class="p-3 text-center bg-light rounded-4 overflow-hidden mb-3" style="max-height: 480px;">
+            <img id="main-product-img" src="{{ product.image_url }}" alt="{{ product.name }}"
+              class="img-fluid rounded-3" style="max-height: 440px; object-fit: contain;"
+              onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop';">
+          </div>
+
+          {% if images and images|length > 1 %}
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
+            {% for img in images %}
+            <img src="{{ img.image_url }}" alt="Thumbnail" class="img-thumbnail"
+              style="width: 70px; height: 70px; object-fit: cover; cursor: pointer; border-radius: 10px;"
+              onclick="document.getElementById('main-product-img').src=this.src;">
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right Column: Product Info & Actions -->
+      <div class="col-12 col-md-6">
+        <div class="d-flex align-items-center gap-2 mb-2">
+          <span class="badge text-uppercase"
+            style="background-color: var(--viva-sage-light); color: var(--viva-forest); font-weight: 700;">{{
+            product.category_name }}</span>
+          {% if product.brand %}
+          <span class="text-muted small fw-semibold">by {{ product.brand }}</span>
+          {% endif %}
+        </div>
+
+        <h1 class="h2 fw-bold mb-3" style="color: var(--viva-forest-dark);">{{ product.name }}</h1>
+
+        <!-- Rating & Reviews -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="stars">
+            {% for i in range(5) %}
+            {% if i < (product.rating|int) %} <i class="bi bi-star-fill"></i>
+              {% else %}
+              <i class="bi bi-star"></i>
+              {% endif %}
+              {% endfor %}
+          </div>
+          <span class="fw-bold text-dark">{{ product.rating }}</span>
+          <span class="text-muted small">({{ product.review_count|default(0) }} verified ratings)</span>
+        </div>
+
+        <!-- Pricing -->
+        <div class="d-flex align-items-baseline gap-3 mb-4">
+          {% if product.discount_price %}
+          <span class="display-6 fw-bold" style="color: var(--viva-forest-dark);">₹{{
+            "%.0f"|format(product.discount_price) }}</span>
+          <span class="fs-5 text-muted text-decoration-line-through">₹{{ "%.0f"|format(product.price) }}</span>
+          <span class="badge bg-success-subtle text-success fw-bold">Save ₹{{ "%.0f"|format(product.price -
+            product.discount_price) }}</span>
+          {% else %}
+          <span class="display-6 fw-bold" style="color: var(--viva-forest-dark);">₹{{ "%.0f"|format(product.price)
+            }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Description -->
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          {{ product.description }}
+        </p>
+
+        <!-- Stock Availability -->
+        <div class="mb-4">
+          {% if product.stock > 10 %}
+          <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> In Stock ({{ product.stock }}
+            units available)</span>
+          {% elif product.stock > 0 %}
+          <span class="text-warning fw-bold"><i class="bi bi-exclamation-circle-fill me-1"></i> Only {{ product.stock }}
+            left in stock &ndash; order soon!</span>
+          {% else %}
+          <span class="text-danger fw-bold"><i class="bi bi-x-circle-fill me-1"></i> Out of Stock</span>
+          {% endif %}
+        </div>
+
+        <!-- Purchase Actions Form -->
+        {% if product.stock > 0 %}
+        <form action="{{ url_for('cart.add_to_cart') }}" method="POST"
+          class="d-flex align-items-center gap-3 flex-wrap mb-4">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+
+          <!-- Quantity Selector -->
+          <div class="quantity-widget">
+            <button type="button" class="quantity-btn quantity-dec"><i class="bi bi-dash"></i></button>
+            <input type="number" name="quantity" class="quantity-input" value="1" min="1" max="{{ product.stock }}"
+              readonly>
+            <button type="button" class="quantity-btn quantity-inc"><i class="bi bi-plus"></i></button>
+          </div>
+
+          <!-- Add to Cart Button -->
+          <button type="submit" class="btn btn-viva-primary px-4 py-3 flex-grow-1">
+            <i class="bi bi-bag-plus me-2"></i> Add to Shopping Cart
+          </button>
+        </form>
+        {% else %}
+        <button class="btn btn-secondary px-4 py-3 w-100 mb-4" disabled>Currently Unavailable</button>
+        {% endif %}
+
+        <!-- Wishlist Form -->
+        <form action="{{ url_for('wishlist.add_to_wishlist') }}" method="POST" class="mb-4">
+          <input type="hidden" name="product_id" value="{{ product.id }}">
+          <button type="submit"
+            class="btn btn-viva-outline w-100 py-2 d-flex align-items-center justify-content-center gap-2">
+            <i class="bi {% if in_wishlist %}bi-heart-fill text-danger{% else %}bi-heart{% endif %}"></i>
+            <span>{% if in_wishlist %}Already in Your Wishlist{% else %}Save to Wishlist{% endif %}</span>
+          </button>
+        </form>
+
+        <!-- Trust Features Box -->
+        <div class="p-3 rounded-3 bg-light border">
+          <div class="row g-2 text-muted small">
+            <div class="col-6"><i class="bi bi-truck me-2 text-success"></i> Free delivery on orders over ₹999</div>
+            <div class="col-6"><i class="bi bi-arrow-repeat me-2 text-success"></i> 30-day hassle free returns</div>
+            <div class="col-6"><i class="bi bi-shield-check me-2 text-success"></i> 100% Genuine guaranteed</div>
+            <div class="col-6"><i class="bi bi-credit-card me-2 text-success"></i> Secure payment processing</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products Section -->
+  {% if related_products %}
+  <section class="py-4">
+    <h3 class="fw-bold mb-4" style="color: var(--viva-forest-dark);">Related Products You May Like</h3>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+      {% for rel in related_products %}
+      <div class="col">
+        <div class="product-card">
+          <button class="product-wishlist-btn ajax-add-to-wishlist" data-product-id="{{ rel.id }}" title="Wishlist">
+            <i class="bi bi-heart"></i>
+          </button>
+          <a href="{{ url_for('product.product_detail', product_id=rel.id) }}" class="product-img-wrap">
+            <img src="{{ rel.image_url }}" alt="{{ rel.name }}" class="product-img">
+          </a>
+          <span class="product-category-tag">{{ rel.category_name }}</span>
+          <h4 class="product-title">
+            <a href="{{ url_for('product.product_detail', product_id=rel.id) }}">{{ rel.name }}</a>
+          </h4>
+          <div class="product-price-box">
+            <div>
+              {% if rel.discount_price %}
+              <span class="current-price">₹{{ "%.0f"|format(rel.discount_price) }}</span>
+              <span class="original-price">₹{{ "%.0f"|format(rel.price) }}</span>
+              {% else %}
+              <span class="current-price">₹{{ "%.0f"|format(rel.price) }}</span>
+              {% endif %}
+            </div>
+            <button class="product-add-btn ajax-add-to-cart" data-product-id="{{ rel.id }}" title="Add to Cart">
+              <i class="bi bi-bag-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

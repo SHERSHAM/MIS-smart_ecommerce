@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2 fw-bold m-0" style="color: var(--viva-forest-dark);">My Order History</h1>
+    <a href="{{ url_for('product.shop') }}" class="btn btn-viva-outline btn-sm">
+      <i class="bi bi-cart me-1"></i> Start Shopping
+    </a>
+  </div>
+
+  {% if orders %}
+  <div class="row g-4">
+    {% for order in orders %}
+    <div class="col-12">
+      <div class="card border-0 shadow-sm p-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 border-bottom">
+          <div>
+            <span class="small text-muted d-block">Order Placed</span>
+            <span class="fw-semibold text-dark">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') if order.created_at else '' }}</span>
+          </div>
+          <div>
+            <span class="small text-muted d-block">Order #</span>
+            <span class="font-monospace fw-bold text-dark">{{ order.order_number }}</span>
+          </div>
+          <div>
+            <span class="small text-muted d-block">Total Amount</span>
+            <span class="fw-bold text-success">₹{{ "%.0f"|format(order.total) }}</span>
+          </div>
+          <div>
+            <span class="small text-muted d-block">Status</span>
+            {% if order.status == 'Delivered' %}
+              <span class="badge bg-success">{{ order.status }}</span>
+            {% elif order.status == 'Shipped' %}
+              <span class="badge bg-primary">{{ order.status }}</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="badge bg-danger">{{ order.status }}</span>
+            {% else %}
+              <span class="badge bg-warning text-dark">{{ order.status }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3">
+          <div class="small text-muted">
+            <span>Payment: <strong>{{ order.payment_method }}</strong> ({{ order.payment_status }})</span>
+            <span class="mx-2">&bull;</span>
+            <span>Shipped to: <strong>{{ order.delivery_city }}, {{ order.delivery_state }}</strong></span>
+          </div>
+
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('order.order_details', order_id=order.id) }}" class="btn btn-viva-outline btn-sm">
+              <i class="bi bi-file-text me-1"></i> View Details
+            </a>
+            <a href="{{ url_for('order.track_order', order_number=order.order_number) }}" class="btn btn-viva-primary btn-sm">
+              <i class="bi bi-geo-alt me-1"></i> Track Order
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="card border-0 shadow-sm p-5 text-center my-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+    <div class="mb-3">
+      <i class="bi bi-box-seam display-1 text-muted"></i>
+    </div>
+    <h3 class="fw-bold mb-2">No Orders Yet</h3>
+    <p class="text-muted mb-4">You have not placed any orders yet. Once you place an order, you can review its status and track delivery here.</p>
+    <div>
+      <a href="{{ url_for('product.shop') }}" class="btn btn-viva-primary px-4 py-2">
+        <i class="bi bi-bag-fill me-2"></i> Browse Products
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

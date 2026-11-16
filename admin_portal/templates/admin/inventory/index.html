@@ -1,0 +1,282 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Inventory & Stock Control - VIVA Executive Portal{% endblock %}
+{% block page_heading %}Inventory & Stock Control{% endblock %}
+
+{% block content %}
+<!-- Top Metrics Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="kpi-label">Total Stock Value</span>
+                <span class="badge bg-dark text-success border border-success border-opacity-25"><i class="bi bi-wallet2"></i></span>
+            </div>
+            <div class="kpi-value text-white">
+                ₹{{ "{:,.2f}".format(products|sum(attribute='inventory_value') if products else 0) }}
+            </div>
+            <div class="small text-secondary mt-auto">Asset value at selling price</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="kpi-label">Total Active SKUs</span>
+                <span class="badge bg-dark text-info border border-info border-opacity-25"><i class="bi bi-boxes"></i></span>
+            </div>
+            <div class="kpi-value text-white">{{ products|length }}</div>
+            <div class="small text-secondary mt-auto">Monitored product lines</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="kpi-label">Low Stock Alerts</span>
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25"><i class="bi bi-exclamation-triangle"></i></span>
+            </div>
+            <div class="kpi-value text-warning">
+                {{ products|selectattr('stock_status', 'in', ['Low Stock', 'LOW_STOCK'])|list|length }}
+            </div>
+            <div class="small text-secondary mt-auto">Below reorder point (ROP)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="kpi-label">Stockouts (Zero)</span>
+                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25"><i class="bi bi-x-circle"></i></span>
+            </div>
+            <div class="kpi-value text-danger">
+                {{ products|selectattr('stock_status', 'in', ['Out of Stock', 'OUT_OF_STOCK'])|list|length }}
+            </div>
+            <div class="small text-secondary mt-auto">Requires immediate restock</div>
+        </div>
+    </div>
+</div>
+
+<!-- Reorder Recommendation Box (MIS Decision Support) -->
+{% if restock_recommendations %}
+<div class="card mb-4 border-warning border-opacity-50" style="background: rgba(234, 179, 8, 0.05);">
+    <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-lightning-charge-fill text-warning fs-5"></i>
+            <h6 class="mb-0 fw-bold text-white">MIS Decision Support — Reorder Point (ROP) Restock Advice</h6>
+        </div>
+        <span class="badge bg-warning text-dark">{{ restock_recommendations|length }} Action Items</span>
+    </div>
+    <div class="card-body pt-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary small">
+                        <th>Product</th>
+                        <th>Current Stock</th>
+                        <th>Avg Daily Sales (ADS)</th>
+                        <th>Lead Time</th>
+                        <th>Calculated ROP</th>
+                        <th>Recommended Restock Qty</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rec in restock_recommendations %}
+                    <tr>
+                        <td class="fw-semibold text-white">
+                            <span class="badge bg-danger bg-opacity-25 text-danger me-2">{{ rec.urgency }}</span>
+                            {{ rec.name }}
+                        </td>
+                        <td>
+                            <span class="badge {% if rec.current_stock == 0 %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                {{ rec.current_stock }} units
+                            </span>
+                        </td>
+                        <td>{{ "%.2f"|format(rec.avg_daily_sales) }} / day</td>
+                        <td>{{ rec.lead_time_days }} days</td>
+                        <td class="text-info fw-bold">{{ rec.reorder_point }} units</td>
+                        <td>
+                            <span class="fw-bold text-success">+{{ rec.recommended_order_quantity }} units</span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-success open-adjust-modal" 
+                                    data-product-id="{{ rec.product_id }}"
+                                    data-product-name="{{ rec.name }}"
+                                    data-current-stock="{{ rec.current_stock }}"
+                                    data-rec-qty="{{ rec.recommended_order_quantity }}">
+                                <i class="bi bi-plus-circle me-1"></i> Restock
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Full Inventory Management Table -->
+<div class="admin-card p-0">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 p-4 border-bottom" style="border-color: var(--admin-border) !important;">
+        <div class="d-flex align-items-center gap-3">
+            <h6 class="mb-0 fw-bold text-white"><i class="bi bi-table me-2 text-success"></i>Inventory Records</h6>
+            <a href="{{ url_for('admin_inventory.transactions') }}" class="btn btn-sm btn-admin-outline">
+                <i class="bi bi-clock-history me-1"></i> Audit Trail History
+            </a>
+        </div>
+        
+        <!-- Filter Tabs -->
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('admin_inventory.inventory_list') }}" class="btn btn-sm {% if not current_status %}btn-admin-neon{% else %}btn-admin-outline{% endif %}">All</a>
+            <a href="{{ url_for('admin_inventory.inventory_list', status='low') }}" class="btn btn-sm {% if current_status == 'low' %}btn-warning text-dark{% else %}btn-admin-outline{% endif %}">Low Stock</a>
+            <a href="{{ url_for('admin_inventory.inventory_list', status='out') }}" class="btn btn-sm {% if current_status == 'out' %}btn-danger{% else %}btn-admin-outline{% endif %}">Out of Stock</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary small">
+                        <th>Product & SKU</th>
+                        <th>Category</th>
+                        <th>Selling Price</th>
+                        <th>Inventory Level</th>
+                        <th>Status</th>
+                        <th>Threshold (ROP)</th>
+                        <th>Safety Stock</th>
+                        <th class="text-end pe-4">Manual Adjustment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                {% if p.image_url %}
+                                <img src="{{ p.image_url }}" alt="{{ p.name }}" class="rounded" style="width: 42px; height: 42px; object-fit: cover;">
+                                {% else %}
+                                <div class="rounded bg-secondary d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold text-white">{{ p.name }}</div>
+                                    <div class="text-secondary small">SKU: {{ p.sku or 'SKU-' ~ p.id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-dark text-secondary border border-secondary border-opacity-25">{{ p.category_name }}</span></td>
+                        <td class="text-white">₹{{ "{:,.2f}".format(p.price) }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold {% if p.stock == 0 %}text-danger{% elif p.stock <= p.reorder_point %}text-warning{% else %}text-white{% endif %}">
+                                    {{ p.stock }}
+                                </span>
+                                <div class="progress flex-grow-1" style="height: 6px; width: 60px; background-color: #26332E;">
+                                    {% set pct = (p.stock / (p.reorder_point * 2.5) * 100) if p.reorder_point > 0 else 50 %}
+                                    {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+                                    <div class="progress-bar {% if p.stock == 0 %}bg-danger{% elif p.stock <= p.reorder_point %}bg-warning{% else %}bg-success{% endif %}" 
+                                         role="progressbar" style="width: {{ pct }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if p.stock_status in ['OUT_OF_STOCK', 'Out of Stock'] or p.stock == 0 %}
+                            <span class="badge bg-danger">OUT OF STOCK</span>
+                            {% elif p.stock_status in ['LOW_STOCK', 'Low Stock'] or p.stock <= (p.reorder_point or 15) %}
+                            <span class="badge bg-warning text-dark">LOW STOCK</span>
+                            {% else %}
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">OPTIMAL</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-secondary">{{ p.reorder_point or 15 }} units</td>
+                        <td class="text-secondary">{{ p.safety_stock or 5 }} units</td>
+                        <td class="text-end pe-4">
+                            <button type="button" class="btn btn-sm btn-outline-light open-adjust-modal"
+                                    data-product-id="{{ p.id }}"
+                                    data-product-name="{{ p.name }}"
+                                    data-current-stock="{{ p.stock }}"
+                                    data-rec-qty="10">
+                                <i class="bi bi-sliders me-1"></i> Adjust
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-secondary">No inventory records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Stock Adjustment Modal -->
+<div class="modal fade" id="adjustStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary">
+            <form action="{{ url_for('admin_inventory.adjust_stock') }}" method="POST">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white"><i class="bi bi-sliders me-2 text-success"></i>Stock Level Adjustment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="product_id" id="modal_product_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Product Name</label>
+                        <input type="text" id="modal_product_name" class="form-control bg-black text-white border-secondary" readonly>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label text-secondary small">Current On-Hand Stock</label>
+                            <input type="text" id="modal_current_stock" class="form-control bg-black text-warning fw-bold border-secondary" readonly>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-secondary small">Adjustment Type</label>
+                            <select name="adjustment_type" class="form-select bg-black text-white border-secondary" required>
+                                <option value="RESTOCK" selected>Restock / Purchase (+)</option>
+                                <option value="RETURN">Customer Return (+)</option>
+                                <option value="CORRECTION">Manual Count Correction (+/-)</option>
+                                <option value="DAMAGE">Damage / Scrap (-)</option>
+                                <option value="AUDIT">Physical Audit Adjustment</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Quantity to Add / Adjust</label>
+                        <input type="number" name="quantity" id="modal_quantity" class="form-control bg-black text-white border-secondary" min="1" required placeholder="Enter unit quantity">
+                        <div class="form-text text-secondary">For reductions or damage, select the corresponding adjustment type.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small">Reason / Internal Reference Note</label>
+                        <textarea name="notes" class="form-control bg-black text-white border-secondary" rows="2" placeholder="e.g. PO-8921 received from distributor"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success fw-bold"><i class="bi bi-check2-circle me-1"></i> Apply & Log Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const adjustModal = new bootstrap.Modal(document.getElementById('adjustStockModal'));
+    document.querySelectorAll('.open-adjust-modal').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('modal_product_id').value = this.dataset.productId;
+            document.getElementById('modal_product_name').value = this.dataset.productName;
+            document.getElementById('modal_current_stock').value = this.dataset.currentStock + ' units';
+            document.getElementById('modal_quantity').value = this.dataset.recQty || 10;
+            adjustModal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

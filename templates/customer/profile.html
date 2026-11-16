@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile | VIVA – Live Better{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+    <!-- Left Column: Navigation Sidebar -->
+    <div class="col-12 col-md-4 col-lg-3">
+      <div class="card border-0 shadow-sm p-4 text-center mb-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mx-auto mb-3" style="width: 72px; height: 72px; background-color: var(--viva-sage-light); color: var(--viva-forest);">
+          <i class="bi bi-person-fill display-5"></i>
+        </div>
+        <h5 class="fw-bold mb-1">{{ customer.full_name }}</h5>
+        <span class="small text-muted">{{ customer.email }}</span>
+      </div>
+
+      <div class="list-group border-0 shadow-sm" style="border-radius: var(--viva-radius); overflow: hidden;">
+        <a href="{{ url_for('customer.profile') }}" class="list-group-item list-group-item-action py-3 fw-semibold active" style="background-color: var(--viva-forest); border-color: var(--viva-forest);">
+          <i class="bi bi-person-gear me-2"></i> Account Details
+        </a>
+        <a href="{{ url_for('order.my_orders') }}" class="list-group-item list-group-item-action py-3 fw-semibold">
+          <i class="bi bi-box-seam me-2"></i> My Orders
+        </a>
+        <a href="{{ url_for('customer.addresses') }}" class="list-group-item list-group-item-action py-3 fw-semibold">
+          <i class="bi bi-geo-alt me-2"></i> Delivery Addresses
+        </a>
+        <a href="{{ url_for('wishlist.view_wishlist') }}" class="list-group-item list-group-item-action py-3 fw-semibold">
+          <i class="bi bi-heart me-2"></i> Saved Wishlist
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="list-group-item list-group-item-action py-3 fw-semibold text-danger">
+          <i class="bi bi-box-arrow-right me-2"></i> Log Out
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Column: Settings Forms -->
+    <div class="col-12 col-md-8 col-lg-9">
+      <!-- Update Profile Card -->
+      <div class="card border-0 shadow-sm p-4 mb-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <h5 class="fw-bold mb-3" style="color: var(--viva-forest-dark);">Personal Information</h5>
+        <form action="{{ url_for('customer.profile') }}" method="POST">
+          <input type="hidden" name="action" value="update_profile">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Full Name *</label>
+              <input type="text" name="full_name" class="form-control form-control-viva" value="{{ customer.full_name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phone Number</label>
+              <input type="tel" name="phone" class="form-control form-control-viva" value="{{ customer.phone or '' }}" placeholder="e.g. +91 9876543210">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Email Address (Read-only)</label>
+              <input type="email" class="form-control form-control-viva" value="{{ customer.email }}" readonly disabled style="background-color: #f8f9fa;">
+            </div>
+            <div class="col-12 text-end">
+              <button type="submit" class="btn btn-viva-primary px-4 py-2">Save Profile Changes</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Change Password Card -->
+      <div class="card border-0 shadow-sm p-4" style="border-radius: var(--viva-radius); background-color: var(--viva-white);">
+        <h5 class="fw-bold mb-3" style="color: var(--viva-forest-dark);">Security & Password</h5>
+        <form action="{{ url_for('customer.profile') }}" method="POST">
+          <input type="hidden" name="action" value="change_password">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Current Password *</label>
+              <input type="password" name="current_password" class="form-control form-control-viva" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">New Password * (Min 6 characters)</label>
+              <input type="password" name="new_password" class="form-control form-control-viva" minlength="6" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Confirm New Password *</label>
+              <input type="password" name="confirm_new_password" class="form-control form-control-viva" minlength="6" required>
+            </div>
+            <div class="col-12 text-end">
+              <button type="submit" class="btn btn-viva-outline px-4 py-2">Update Password</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

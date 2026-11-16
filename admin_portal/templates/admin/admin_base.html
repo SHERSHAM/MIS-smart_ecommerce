@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}VIVA | Admin MIS Decision Support System{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Admin Executive Dark Theme -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='admin_portal/css/admin_dark.css') }}?v=2.1">
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="admin-body">
+
+  <!-- =========================================================================
+       SIDEBAR NAVIGATION
+       ========================================================================= -->
+  <aside class="admin-sidebar">
+    <!-- Brand Box -->
+    <div class="sidebar-brand-box d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-2">
+        <div
+          style="width: 32px; height: 32px; background: var(--admin-neon); color: #0E1311; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;">
+          V
+        </div>
+        <div>
+          <div style="font-weight: 800; font-size: 1.15rem; color: #FFF; line-height: 1;">ViVA</div>
+          <div style="font-size: 0.65rem; color: var(--admin-neon); font-weight: 700; letter-spacing: 0.15em;">MIS
+            PORTAL</div>
+        </div>
+      </div>
+      <span class="badge rounded-pill"
+        style="background: rgba(163,230,53,0.15); color: var(--admin-neon); font-size: 0.65rem;">v2.0</span>
+    </div>
+
+    <!-- Navigation List -->
+    <div class="sidebar-nav-container">
+      <!-- Admin Profile Pill -->
+      <div class="admin-user-pill">
+        <div class="admin-avatar">
+          {{ session.get('admin_name', 'Admin')[0] }}
+        </div>
+        <div class="min-w-0">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #FFF;" class="text-truncate">
+            {{ session.get('admin_name', 'Administrator') }}
+          </div>
+          <div style="font-size: 0.72rem; color: var(--admin-neon);">
+            {{ session.get('admin_role', 'Super Admin') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Dashboards -->
+      <div class="sidebar-heading">Dashboards & MIS</div>
+      <a href="{{ url_for('admin_dashboard.dashboard') }}"
+        class="sidebar-nav-item {% if request.endpoint == 'admin_dashboard.dashboard' %}active{% endif %}">
+        <i class="bi bi-grid-1x2-fill"></i>
+        <span>Overview</span>
+      </a>
+      <a href="{{ url_for('admin_analytics.analytics_overview') }}"
+        class="sidebar-nav-item {% if request.endpoint == 'admin_analytics.analytics_overview' %}active{% endif %}">
+        <i class="bi bi-graph-up-arrow"></i>
+        <span>MIS Analytics</span>
+      </a>
+      <a href="{{ url_for('admin_insights.insights_view') }}"
+        class="sidebar-nav-item {% if request.endpoint == 'admin_insights.insights_view' %}active{% endif %}">
+        <i class="bi bi-lightbulb-fill"></i>
+        <span>Business Insights</span>
+      </a>
+
+      <!-- Section: Operations -->
+      <div class="sidebar-heading mt-2">Commerce & Orders</div>
+      <a href="{{ url_for('admin_order.order_list') }}"
+        class="sidebar-nav-item {% if 'order' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-bag-check-fill"></i>
+        <span>Orders</span>
+      </a>
+      <a href="{{ url_for('admin_product.product_list') }}"
+        class="sidebar-nav-item {% if 'product' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-box-seam-fill"></i>
+        <span>Products</span>
+      </a>
+      <a href="{{ url_for('admin_category.category_list') }}"
+        class="sidebar-nav-item {% if 'category' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-tags-fill"></i>
+        <span>Categories</span>
+      </a>
+      <a href="{{ url_for('admin_customer.customer_list') }}"
+        class="sidebar-nav-item {% if 'customer' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-people-fill"></i>
+        <span>Customers</span>
+      </a>
+
+      <!-- Section: Inventory & Reports -->
+      <div class="sidebar-heading mt-2">Logistics & Reports</div>
+      <a href="{{ url_for('admin_inventory.inventory_list') }}"
+        class="sidebar-nav-item {% if request.endpoint == 'admin_inventory.inventory_list' %}active{% endif %}">
+        <i class="bi bi-stack"></i>
+        <span>Inventory Tracker</span>
+      </a>
+      <a href="{{ url_for('admin_inventory.transactions') }}"
+        class="sidebar-nav-item {% if request.endpoint == 'admin_inventory.transactions' %}active{% endif %}">
+        <i class="bi bi-clock-history"></i>
+        <span>Audit Trail</span>
+      </a>
+      <a href="{{ url_for('admin_report.report_view') }}"
+        class="sidebar-nav-item {% if 'report' in request.endpoint %}active{% endif %}">
+        <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+        <span>Reports & Export</span>
+      </a>
+
+      <!-- Section: System -->
+      <div class="sidebar-heading mt-2">System</div>
+      <a href="{{ url_for('customer.home') }}" target="_blank" class="sidebar-nav-item text-success">
+        <i class="bi bi-box-arrow-up-right"></i>
+        <span>View Customer Store</span>
+      </a>
+      <a href="{{ url_for('admin_auth.logout') }}" class="sidebar-nav-item text-danger">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Log Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       MAIN WRAPPER & TOPBAR
+       ========================================================================= -->
+  <div class="admin-main-wrapper">
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <div>
+        <h5 class="fw-bold m-0" style="color: #FFF;">{% block page_heading %}{% block page_title %}Executive Overview{%
+          endblock %}{% endblock %}</h5>
+        <span class="small text-muted">Smart E-Commerce Decision Support System (SEDSS)</span>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <!-- Live Status Pill -->
+        <div class="d-none d-md-flex align-items-center gap-2 px-3 py-1 rounded-pill"
+          style="background-color: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.25);">
+          <span
+            style="width: 8px; height: 8px; border-radius: 50%; background-color: var(--admin-emerald); display: inline-block;"></span>
+          <span style="font-size: 0.75rem; color: var(--admin-emerald); font-weight: 700;">MySQL Connected</span>
+        </div>
+
+        <a href="{{ url_for('admin_report.report_view') }}" class="btn btn-admin-outline btn-sm">
+          <i class="bi bi-download me-1"></i> Quick Reports
+        </a>
+      </div>
+    </header>
+
+    <!-- Alerts Container -->
+    <div class="px-4 pt-3">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      {% for category, message in messages %}
+      <div
+        class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show border-0 shadow-sm"
+        role="alert" style="border-radius: 10px;">
+        <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+      {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="admin-content-body">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiikmo,
+  <!-- Chart.js 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Admin Charts Controller -->
+  <script src="{{ url_for('static', filename='admin_portal/js/admin_charts.js') }}?v=2.1"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

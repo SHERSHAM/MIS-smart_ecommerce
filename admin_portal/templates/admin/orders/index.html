@@ -1,0 +1,93 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Order Management | VIVA Admin{% endblock %}
+{% block page_heading %}Order Management{% endblock %}
+
+{% block content %}
+<div class="admin-card mb-4">
+  <form action="{{ url_for('admin_order.order_list') }}" method="GET" class="d-flex align-items-center gap-2 flex-wrap">
+    <input type="text" name="q" class="form-control form-control-admin" placeholder="Search Order #, customer name, email..." value="{{ search }}" style="max-width: 300px;">
+    
+    <select name="status" class="form-select form-select-admin" style="width: auto;" onchange="this.form.submit()">
+      <option value="all">All Order Statuses</option>
+      {% for st in ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] %}
+        <option value="{{ st }}" {% if status_filter == st %}selected{% endif %}>{{ st }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="payment" class="form-select form-select-admin" style="width: auto;" onchange="this.form.submit()">
+      <option value="all">All Payment Methods</option>
+      <option value="Online" {% if payment_filter == 'Online' %}selected{% endif %}>Online Payment</option>
+      <option value="COD" {% if payment_filter == 'COD' %}selected{% endif %}>Cash on Delivery (COD)</option>
+    </select>
+
+    <button type="submit" class="btn btn-admin-outline btn-sm">Filter</button>
+    {% if search or (status_filter and status_filter != 'all') or (payment_filter and payment_filter != 'all') %}
+      <a href="{{ url_for('admin_order.order_list') }}" class="btn btn-sm btn-link text-muted">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="admin-card">
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Order Number</th>
+          <th>Customer</th>
+          <th>Date Placed</th>
+          <th>Total (₹)</th>
+          <th>Payment</th>
+          <th>Order Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td>
+            <span class="font-monospace fw-bold" style="color: var(--admin-neon); font-size: 0.85rem;">
+              {{ order.order_number }}
+            </span>
+          </td>
+          <td>
+            <div class="fw-semibold text-white">{{ order.delivery_name }}</div>
+            <span class="small text-muted">{{ order.delivery_email }}</span>
+          </td>
+          <td>
+            <span class="small text-muted">{{ order.created_at.strftime('%d %b %Y, %H:%M') if order.created_at else '' }}</span>
+          </td>
+          <td>
+            <span class="fw-bold text-white">₹{{ "{:,.0f}".format(order.total) }}</span>
+          </td>
+          <td>
+            <div class="small fw-semibold">{{ order.payment_method }}</div>
+            <span class="admin-badge {% if order.payment_status == 'Completed' %}admin-badge-success{% else %}admin-badge-warning{% endif %}" style="font-size: 0.68rem;">
+              {{ order.payment_status }}
+            </span>
+          </td>
+          <td>
+            {% if order.status == 'Delivered' %}
+              <span class="admin-badge admin-badge-success">{{ order.status }}</span>
+            {% elif order.status in ('Confirmed', 'Processing') %}
+              <span class="admin-badge admin-badge-neon">{{ order.status }}</span>
+            {% elif order.status == 'Shipped' %}
+              <span class="admin-badge admin-badge-info">{{ order.status }}</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="admin-badge admin-badge-danger">{{ order.status }}</span>
+            {% else %}
+              <span class="admin-badge admin-badge-warning">{{ order.status }}</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('admin_order.order_detail', order_id=order.id) }}" class="btn btn-sm btn-admin-outline py-1 px-3">
+              <i class="bi bi-eye me-1"></i> Review
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

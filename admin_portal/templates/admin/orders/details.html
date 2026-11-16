@@ -1,0 +1,139 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Order #{{ order.order_number }} | VIVA Admin{% endblock %}
+{% block page_heading %}Order Details #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Left Column: Items and Customer Info -->
+  <div class="col-12 col-lg-8">
+    <!-- Order Items Card -->
+    <div class="admin-card mb-4">
+      <div class="admin-card-header">
+        <h6 class="admin-card-title">Order Items ({{ items|length }})</h6>
+        <span class="small text-muted">Purchase-time historical pricing</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Unit Price</th>
+              <th>Qty</th>
+              <th class="text-end">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-3">
+                  <img src="{{ item.image_url }}" alt="{{ item.product_name }}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--admin-border);" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop';">
+                  <div class="fw-semibold text-white">{{ item.product_name }}</div>
+                </div>
+              </td>
+              <td>₹{{ "{:,.0f}".format(item.product_price) }}</td>
+              <td class="fw-bold text-white">{{ item.quantity }}</td>
+              <td class="text-end fw-bold" style="color: var(--admin-neon);">
+                ₹{{ "{:,.0f}".format(item.subtotal) }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Delivery Address Card -->
+    <div class="admin-card">
+      <h6 class="admin-card-title mb-3">Delivery Information</h6>
+      <div class="p-3 rounded" style="background-color: var(--admin-bg-surface); border: 1px solid var(--admin-border);">
+        <p class="mb-1 text-white"><strong>Recipient:</strong> {{ order.delivery_name }}</p>
+        <p class="mb-1 text-muted"><strong>Contact Phone:</strong> {{ order.delivery_phone }}</p>
+        <p class="mb-1 text-muted"><strong>Email:</strong> {{ order.delivery_email }}</p>
+        <p class="mb-0 text-muted">
+          <strong>Shipping Address:</strong><br>
+          {{ order.delivery_address }}<br>
+          {{ order.delivery_city }}, {{ order.delivery_state }} - {{ order.delivery_pincode }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Status Transition & Financials -->
+  <div class="col-12 col-lg-4">
+    <!-- Status Transition Card -->
+    <div class="admin-card mb-4">
+      <h6 class="admin-card-title mb-3">Update Order Status</h6>
+      <form action="{{ url_for('admin_order.update_status', order_id=order.id) }}" method="POST">
+        <div class="mb-3">
+          <label class="form-label small fw-semibold text-muted">Current Status:</label>
+          <div class="mb-2">
+            {% if order.status == 'Delivered' %}
+              <span class="admin-badge admin-badge-success fs-6">{{ order.status }}</span>
+            {% elif order.status == 'Cancelled' %}
+              <span class="admin-badge admin-badge-danger fs-6">{{ order.status }}</span>
+            {% else %}
+              <span class="admin-badge admin-badge-neon fs-6">{{ order.status }}</span>
+            {% endif %}
+          </div>
+          <select name="status" class="form-select form-select-admin mb-3" required>
+            {% for st in ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] %}
+              <option value="{{ st }}" {% if order.status == st %}selected{% endif %}>{{ st }}</option>
+            {% endfor %}
+          </select>
+          <div class="small text-muted mb-3">
+            <i class="bi bi-info-circle me-1"></i> Cancelling an order will automatically restore product inventory levels in MySQL.
+          </div>
+          <button type="submit" class="btn btn-admin-neon w-100 py-2">
+            <i class="bi bi-arrow-repeat me-1"></i> Apply Status Change
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Financial Breakdown Card -->
+    <div class="admin-card">
+      <h6 class="admin-card-title mb-3">Payment Summary</h6>
+      
+      <div class="d-flex justify-content-between py-2 border-bottom" style="border-color: var(--admin-border-subtle) !important;">
+        <span class="text-muted small">Subtotal</span>
+        <span class="fw-semibold text-white">₹{{ "{:,.0f}".format(order.subtotal) }}</span>
+      </div>
+
+      <div class="d-flex justify-content-between py-2 border-bottom" style="border-color: var(--admin-border-subtle) !important;">
+        <span class="text-muted small">Shipping Fee</span>
+        <span class="text-white">
+          {% if order.shipping_fee == 0 %}
+            <span class="text-success fw-bold">FREE</span>
+          {% else %}
+            ₹{{ "{:,.0f}".format(order.shipping_fee) }}
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="d-flex justify-content-between py-3 mb-3">
+        <span class="fw-bold text-white">Final Total</span>
+        <span class="fs-5 fw-bold" style="color: var(--admin-neon);">₹{{ "{:,.0f}".format(order.total) }}</span>
+      </div>
+
+      <div class="p-3 rounded small" style="background-color: var(--admin-bg-surface); border: 1px solid var(--admin-border);">
+        <p class="mb-1 text-muted"><strong>Payment Method:</strong> {{ order.payment_method }}</p>
+        <p class="mb-1 text-muted"><strong>Payment Status:</strong> 
+          <span class="admin-badge {% if order.payment_status == 'Completed' %}admin-badge-success{% else %}admin-badge-warning{% endif %}" style="font-size: 0.65rem;">
+            {{ order.payment_status }}
+          </span>
+        </p>
+        {% if order.transaction_id %}
+          <p class="mb-0 text-muted font-monospace"><strong>Txn ID:</strong> {{ order.transaction_id }}</p>
+        {% endif %}
+      </div>
+
+      <a href="{{ url_for('admin_order.order_list') }}" class="btn btn-admin-outline w-100 mt-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Orders
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

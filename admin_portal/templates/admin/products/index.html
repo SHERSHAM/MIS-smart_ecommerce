@@ -1,0 +1,111 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Product Catalog Management | VIVA Admin{% endblock %}
+{% block page_heading %}Product Management{% endblock %}
+
+{% block content %}
+<div class="admin-card mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Search and Filter Form -->
+    <form action="{{ url_for('admin_product.product_list') }}" method="GET" class="d-flex align-items-center gap-2 flex-grow-1 flex-wrap" style="max-width: 650px;">
+      <input type="text" name="q" class="form-control form-control-admin" placeholder="Search product name, SKU, brand..." value="{{ search }}" style="max-width: 280px;">
+      
+      <select name="category" class="form-select form-select-admin" style="width: auto;" onchange="this.form.submit()">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if current_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+
+      <select name="status" class="form-select form-select-admin" style="width: auto;" onchange="this.form.submit()">
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active Only</option>
+        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive Only</option>
+      </select>
+
+      <button type="submit" class="btn btn-admin-outline btn-sm">Filter</button>
+      {% if search or current_category or status_filter != 'all' %}
+        <a href="{{ url_for('admin_product.product_list') }}" class="btn btn-sm btn-link text-muted">Clear</a>
+      {% endif %}
+    </form>
+
+    <a href="{{ url_for('admin_product.add_product') }}" class="btn btn-admin-neon d-flex align-items-center gap-2">
+      <i class="bi bi-plus-lg"></i>
+      <span>Add New Product</span>
+    </a>
+  </div>
+</div>
+
+<div class="admin-card">
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Product Name & SKU</th>
+          <th>Category</th>
+          <th>Price (₹)</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in products %}
+        <tr>
+          <td style="width: 60px;">
+            <img src="{{ prod.image_url }}" alt="{{ prod.name }}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border);" onerror="this.src='https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop';">
+          </td>
+          <td>
+            <div class="fw-bold text-white">{{ prod.name }}</div>
+            <span class="small font-monospace text-muted">{{ prod.sku or 'SKU-N/A' }}</span>
+            {% if prod.brand %}
+              <span class="text-dim small">&bull; {{ prod.brand }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="admin-badge admin-badge-info">{{ prod.category_name or 'General' }}</span>
+          </td>
+          <td>
+            {% if prod.discount_price %}
+              <span class="fw-bold" style="color: var(--admin-neon);">₹{{ "{:,.0f}".format(prod.discount_price) }}</span>
+              <span class="small text-muted text-decoration-line-through d-block">₹{{ "{:,.0f}".format(prod.price) }}</span>
+            {% else %}
+              <span class="fw-bold text-white">₹{{ "{:,.0f}".format(prod.price) }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if prod.stock == 0 %}
+              <span class="admin-badge admin-badge-danger">Out of Stock</span>
+            {% elif prod.stock <= 10 %}
+              <span class="admin-badge admin-badge-warning">{{ prod.stock }} left (Low)</span>
+            {% else %}
+              <span class="fw-semibold text-white">{{ prod.stock }} units</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if prod.is_active %}
+              <span class="admin-badge admin-badge-success">Active</span>
+            {% else %}
+              <span class="admin-badge admin-badge-danger">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-2">
+              <a href="{{ url_for('admin_product.edit_product', product_id=prod.id) }}" class="btn btn-sm btn-admin-outline py-1 px-2" title="Edit Product">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form action="{{ url_for('admin_product.toggle_status', product_id=prod.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Change product visibility?');">
+                <button type="submit" class="btn btn-sm {% if prod.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %} py-1 px-2" title="Toggle Active">
+                  <i class="bi {% if prod.is_active %}bi-eye-slash{% else %}bi-eye{% endif %}"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Customer Intelligence | VIVA Admin{% endblock %}
+{% block page_heading %}Customer Management & Intelligence{% endblock %}
+
+{% block content %}
+<!-- Customer Summary Metrics -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <span class="kpi-label">Registered Accounts</span>
+      <div class="kpi-value">{{ summary_metrics.total_customers }}</div>
+      <span class="small text-muted">Active database profiles</span>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <span class="kpi-label">Repeat Customers</span>
+      <div class="kpi-value" style="color: var(--admin-neon);">{{ summary_metrics.repeat_customers }}</div>
+      <span class="small text-muted">>1 order placed</span>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <span class="kpi-label">Repeat Buyer Rate</span>
+      <div class="kpi-value">{{ summary_metrics.repeat_rate_pct }}%</div>
+      <span class="small text-muted">Retention health ratio</span>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <span class="kpi-label">Storewide AOV</span>
+      <div class="kpi-value">₹{{ "{:,.0f}".format(summary_metrics.overall_aov) }}</div>
+      <span class="small text-muted">Average order value</span>
+    </div>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="admin-card mb-4">
+  <form action="{{ url_for('admin_customer.customer_list') }}" method="GET" class="d-flex align-items-center gap-2">
+    <input type="text" name="q" class="form-control form-control-admin" placeholder="Search customer name, email, phone..." value="{{ search }}" style="max-width: 380px;">
+    <button type="submit" class="btn btn-admin-outline btn-sm">Search</button>
+    {% if search %}
+      <a href="{{ url_for('admin_customer.customer_list') }}" class="btn btn-sm btn-link text-muted">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Customer Table -->
+<div class="admin-card">
+  <div class="table-responsive">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Contact</th>
+          <th>Orders</th>
+          <th>Lifetime Spend (₹)</th>
+          <th>AOV (₹)</th>
+          <th>Customer Segment</th>
+          <th class="text-end">History</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cust in customers %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-3">
+              <div class="admin-avatar" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                {{ cust.full_name[0] }}
+              </div>
+              <div>
+                <div class="fw-bold text-white">{{ cust.full_name }}</div>
+                <span class="small text-muted">Joined {{ cust.registered_at.strftime('%b %Y') if cust.registered_at else '' }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="small text-white">{{ cust.email }}</div>
+            <span class="small text-muted">{{ cust.phone or 'N/A' }}</span>
+          </td>
+          <td class="fw-bold text-white">{{ cust.total_orders }}</td>
+          <td>
+            <span class="fw-bold" style="color: var(--admin-neon);">₹{{ "{:,.0f}".format(cust.total_spent) }}</span>
+          </td>
+          <td>
+            <span class="text-white">₹{{ "{:,.0f}".format(cust.aov) }}</span>
+          </td>
+          <td>
+            <span class="badge {{ cust.badge_class }} py-1 px-2" style="font-size: 0.72rem;">
+              {{ cust.segment }}
+            </span>
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('admin_customer.customer_detail', customer_id=cust.id) }}" class="btn btn-sm btn-admin-outline py-1 px-2">
+              <i class="bi bi-person-lines-fill me-1"></i> Orders
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

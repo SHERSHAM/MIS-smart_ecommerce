@@ -1,0 +1,109 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}{% if product %}Edit Product #{{ product.id }}{% else %}Add New Product{% endif %} | VIVA Admin{% endblock %}
+{% block page_heading %}{% if product %}Edit Product: {{ product.name }}{% else %}Add New Product{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <div class="admin-card">
+      <form action="{{ url_for('admin_product.edit_product', product_id=product.id) if product else url_for('admin_product.add_product') }}" method="POST" enctype="multipart/form-data">
+        <div class="row g-3">
+          <!-- Product Name -->
+          <div class="col-12 col-md-8">
+            <label class="form-label small fw-semibold text-muted">Product Title *</label>
+            <input type="text" name="name" class="form-control form-control-admin" placeholder="e.g. Ergonomic Office Chair" value="{{ product.name if product else '' }}" required>
+          </div>
+
+          <!-- SKU -->
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold text-muted">SKU (Stock Keeping Unit)</label>
+            <input type="text" name="sku" class="form-control form-control-admin font-monospace" placeholder="e.g. HOME-009" value="{{ product.sku if product else '' }}">
+          </div>
+
+          <!-- Brand -->
+          <div class="col-12 col-md-6">
+            <label class="form-label small fw-semibold text-muted">Brand Name</label>
+            <input type="text" name="brand" class="form-control form-control-admin" placeholder="e.g. SoundMax" value="{{ product.brand if product else '' }}">
+          </div>
+
+          <!-- Category -->
+          <div class="col-12 col-md-6">
+            <label class="form-label small fw-semibold text-muted">Category *</label>
+            <select name="category_id" class="form-select form-select-admin" required>
+              <option value="">Select Category</option>
+              {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Price & Discount -->
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold text-muted">Regular Price (₹) *</label>
+            <input type="number" step="0.01" name="price" class="form-control form-control-admin" placeholder="0.00" value="{{ product.price if product else '' }}" required>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold text-muted">Discount Price (₹)</label>
+            <input type="number" step="0.01" name="discount_price" class="form-control form-control-admin" placeholder="Optional" value="{{ product.discount_price if product and product.discount_price else '' }}">
+          </div>
+
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-semibold text-muted">Initial Stock Quantity *</label>
+            <input type="number" name="stock" class="form-control form-control-admin" min="0" placeholder="0" value="{{ product.stock if product else '10' }}" required>
+          </div>
+
+          <!-- Short Description -->
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Short Summary (1-2 sentences)</label>
+            <input type="text" name="short_description" class="form-control form-control-admin" placeholder="Brief summary of product features" value="{{ product.short_description if product else '' }}">
+          </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <label class="form-label small fw-semibold text-muted">Detailed Description</label>
+            <textarea name="description" rows="4" class="form-control form-control-admin" placeholder="Full product specifications and details">{{ product.description if product else '' }}</textarea>
+          </div>
+
+          <!-- Image URL and File Upload -->
+          <div class="col-12 col-md-7">
+            <label class="form-label small fw-semibold text-muted">Image URL (Direct Web Link)</label>
+            <input type="url" name="image_url" class="form-control form-control-admin" placeholder="https://images.unsplash.com/..." value="{{ product.image_url if product else '' }}">
+          </div>
+
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-semibold text-muted">Or Upload Image File</label>
+            <input type="file" name="product_image_file" class="form-control form-control-admin" accept="image/*">
+          </div>
+
+          {% if product and product.image_url %}
+          <div class="col-12">
+            <div class="d-flex align-items-center gap-3 p-2 rounded" style="background-color: var(--admin-bg-surface); border: 1px solid var(--admin-border);">
+              <img src="{{ product.image_url }}" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;">
+              <span class="small text-muted">Current product visual</span>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if product %}
+          <div class="col-12">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="is_active" id="isActive" {% if product.is_active %}checked{% endif %}>
+              <label class="form-check-label small text-white" for="isActive">Product is active and visible on Customer Purchasing Website</label>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="col-12 d-flex justify-content-between align-items-center pt-3 border-top" style="border-color: var(--admin-border) !important;">
+            <a href="{{ url_for('admin_product.product_list') }}" class="btn btn-admin-outline">Cancel</a>
+            <button type="submit" class="btn btn-admin-neon px-4 py-2">
+              <i class="bi bi-check-lg me-1"></i> Save Product
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

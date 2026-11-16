@@ -1,0 +1,84 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Inventory Audit Logs - VIVA Executive Portal{% endblock %}
+{% block page_heading %}Inventory Audit Trail Ledger{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <p class="text-secondary small mb-0">Every stock movement, purchase intake, order fulfillment, and administrative adjustment is recorded here for compliance and transparency.</p>
+    </div>
+    <a href="{{ url_for('admin_inventory.inventory_list') }}" class="btn btn-admin-outline btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Inventory
+    </a>
+</div>
+
+<div class="admin-card p-0">
+    <div class="d-flex justify-content-between align-items-center p-4 border-bottom" style="border-color: var(--admin-border) !important;">
+        <h6 class="mb-0 fw-bold text-white"><i class="bi bi-journal-check me-2 text-success"></i>Stock Transaction Ledger</h6>
+        <span class="badge bg-secondary">{{ transactions|length }} Records Logged</span>
+    </div>
+    <div class="p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                    <tr class="text-secondary small">
+                        <th>Transaction ID</th>
+                        <th>Date & Time</th>
+                        <th>Product</th>
+                        <th>Movement Type</th>
+                        <th>Qty Delta</th>
+                        <th>Stock Before</th>
+                        <th>Stock After</th>
+                        <th>Reference / Notes</th>
+                        <th>Operator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transactions %}
+                    <tr>
+                        <td class="text-secondary font-monospace">#TXN-{{ t.id }}</td>
+                        <td class="text-white small">{{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at else 'N/A' }}</td>
+                        <td class="fw-semibold text-white">{{ t.product_name }}</td>
+                        <td>
+                            {% if t.transaction_type in ['RESTOCK', 'RETURN', 'IN'] %}
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-25">
+                                <i class="bi bi-arrow-down-left me-1"></i> {{ t.transaction_type }}
+                            </span>
+                            {% elif t.transaction_type in ['SALE', 'ORDER_FULFILLMENT', 'OUT'] %}
+                            <span class="badge bg-info bg-opacity-25 text-info border border-info border-opacity-25">
+                                <i class="bi bi-arrow-up-right me-1"></i> {{ t.transaction_type }}
+                            </span>
+                            {% elif t.transaction_type in ['DAMAGE', 'SCRAP'] %}
+                            <span class="badge bg-danger bg-opacity-25 text-danger border border-danger border-opacity-25">
+                                <i class="bi bi-x-octagon me-1"></i> {{ t.transaction_type }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-25">
+                                <i class="bi bi-sliders me-1"></i> {{ t.transaction_type }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold {% if t.quantity > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ "+" if t.quantity > 0 else "" }}{{ t.quantity }}
+                        </td>
+                        <td class="text-secondary">{{ t.previous_stock if t.previous_stock is not none else '-' }}</td>
+                        <td class="text-white fw-semibold">{{ t.new_stock if t.new_stock is not none else '-' }}</td>
+                        <td class="text-secondary small">{{ t.notes or t.reference_note or t.reference or '-' }}</td>
+                        <td>
+                            <span class="badge bg-dark text-secondary border border-secondary border-opacity-25">
+                                <i class="bi bi-person me-1"></i> {{ t.admin_name or 'System' }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-secondary">No stock transactions logged yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

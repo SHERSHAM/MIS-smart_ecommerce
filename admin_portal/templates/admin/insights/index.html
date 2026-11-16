@@ -1,0 +1,100 @@
+{% extends "admin/admin_base.html" %}
+
+{% block title %}MIS Decision Support System & Strategic Insights - VIVA{% endblock %}
+{% block page_heading %}MIS Business Insights & Decision Support (DSS){% endblock %}
+
+{% block content %}
+<!-- Executive DSS Header -->
+<div class="admin-card mb-4 border-success border-opacity-25" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.08) 0%, rgba(21, 28, 25, 0.95) 100%);">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-success text-black fw-bold px-2 py-1"><i class="bi bi-cpu-fill me-1"></i> DSS Engine v2.0</span>
+                <span class="text-secondary small">Real-Time Data Synthesis</span>
+            </div>
+            <h4 class="fw-bold text-white mb-2">Prescriptive Business Intelligence & Executive Advisory</h4>
+            <p class="text-secondary mb-0" style="max-width: 720px;">
+                The Smart E-Commerce Decision Support System analyzes sales velocity, inventory stockout risks, capital allocation, and customer retention metrics to provide management with prescriptive, data-grounded strategic guidance.
+            </p>
+        </div>
+        <div class="text-end">
+            <div class="fs-2 fw-bold text-success">{{ recommendations|length }}</div>
+            <div class="text-secondary small">Active Strategic Signals</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommendations Grid -->
+<div class="row g-4">
+    {% for rec in recommendations %}
+    <div class="col-lg-6">
+        <div class="admin-card h-100 border-{% if rec.severity == 'CRITICAL' %}danger{% elif rec.severity == 'WARNING' %}warning{% elif rec.severity == 'GROWTH' %}success{% else %}info{% endif %} border-opacity-50 d-flex flex-column" style="margin-bottom: 0;">
+            <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom" style="border-color: var(--admin-border) !important;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="{{ rec.icon }} fs-5 {% if rec.severity == 'CRITICAL' %}text-danger{% elif rec.severity == 'WARNING' %}text-warning{% elif rec.severity == 'GROWTH' %}text-success{% else %}text-info{% endif %}"></i>
+                    <span class="text-secondary small text-uppercase fw-semibold">{{ rec.category }}</span>
+                </div>
+                <span class="badge {% if rec.severity == 'CRITICAL' %}bg-danger{% elif rec.severity == 'WARNING' %}bg-warning text-dark{% elif rec.severity == 'GROWTH' %}bg-success{% else %}bg-info text-dark{% endif %}">
+                    {{ rec.severity }}
+                </span>
+            </div>
+            
+            <div class="flex-grow-1">
+                <h5 class="fw-bold text-white mb-3">{{ rec.title }}</h5>
+
+                <!-- Key Observation / Finding -->
+                <div class="mb-3">
+                    <div class="text-secondary small text-uppercase fw-semibold mb-1">Empirical Observation:</div>
+                    <div class="p-2 rounded bg-black text-light small border border-secondary border-opacity-25">
+                        <i class="bi bi-search text-secondary me-1"></i> {{ rec.observation or rec.finding }}
+                    </div>
+                </div>
+
+                <!-- Supporting Data Metric -->
+                {% if rec.supporting_data %}
+                <div class="mb-3">
+                    <div class="text-secondary small text-uppercase fw-semibold mb-1">Supporting Metric:</div>
+                    <div class="text-info small font-monospace">
+                        <i class="bi bi-database me-1"></i> {{ rec.supporting_data }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Business Impact -->
+                <div class="mb-3">
+                    <div class="text-secondary small text-uppercase fw-semibold mb-1">Business Impact:</div>
+                    <div class="text-white small">
+                        <i class="bi bi-graph-down text-danger me-1"></i> {{ rec.business_implication or rec.impact }}
+                    </div>
+                </div>
+
+                <!-- Prescriptive Action -->
+                <div class="p-3 rounded border border-success border-opacity-25" style="background: rgba(34, 197, 94, 0.08);">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-lightbulb-fill text-warning"></i>
+                        <span class="text-success fw-bold small text-uppercase">Recommended Strategic Action:</span>
+                    </div>
+                    <p class="text-white small mb-0">{{ rec.suggested_action or rec.recommendation }}</p>
+                </div>
+            </div>
+            
+            {% if rec.action_url %}
+            <div class="pt-3 mt-3 border-top" style="border-color: var(--admin-border) !important;">
+                <a href="{{ rec.action_url }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Take Action in Portal
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="admin-card py-5 text-center">
+            <i class="bi bi-check-circle-fill text-success fs-1 mb-3"></i>
+            <h4 class="text-white fw-bold">All Business Operations are Balanced</h4>
+            <p class="text-secondary">No critical stockouts, dead capital, or operational anomalies detected in the current data snapshot.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
