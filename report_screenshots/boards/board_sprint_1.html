@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fig 2.1 - Sprint 1: Storefront & Customer Purchasing Engine</title>
+    <style>
+:root {
+    --bg-main: #0B1118;
+    --bg-card: #131E29;
+    --bg-col: #0E1620;
+    --border-color: #202F3E;
+    --neon-green: #00F59B;
+    --text-primary: #F0F4F8;
+    --text-muted: #8E9FAA;
+    --must-have: #FF4757;
+    --should-have: #FFA502;
+    --done-badge: #00F59B;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { background: var(--bg-main); color: var(--text-primary); padding: 24px; min-height: 100vh; }
+.header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); margin-bottom: 24px; }
+.project-title { display: flex; align-items: center; gap: 14px; }
+.project-icon { width: 42px; height: 42px; background: linear-gradient(135deg, #00F59B, #00A86B); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; font-size: 20px; box-shadow: 0 0 15px rgba(0,245,155,0.3); }
+.project-name { font-size: 22px; font-weight: 700; color: #FFF; letter-spacing: -0.5px; }
+.project-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.meta-badges { display: flex; gap: 10px; align-items: center; }
+.meta-badge { background: #182533; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.meta-badge.active { border-color: var(--neon-green); color: var(--neon-green); background: rgba(0,245,155,0.08); }
+
+.sprint-summary-bar { background: var(--bg-col); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+.sprint-info-left { display: flex; align-items: center; gap: 18px; }
+.sprint-name { font-size: 17px; font-weight: 700; color: #FFF; }
+.sprint-dates { font-size: 13px; color: var(--text-muted); }
+.sprint-stats { display: flex; gap: 20px; }
+.stat-item { text-align: right; }
+.stat-val { font-size: 16px; font-weight: 700; color: var(--neon-green); }
+.stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.kanban-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.kanban-grid-full { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.column { background: var(--bg-col); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; min-height: 600px; }
+.col-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--border-color); margin-bottom: 14px; }
+.col-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+.col-count { background: #1E2D3D; color: var(--text-primary); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.card-stack { display: flex; flex-direction: column; gap: 14px; flex-grow: 1; }
+
+.card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 16px; position: relative; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.card:hover { border-color: var(--neon-green); transform: translateY(-2px); }
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.card-id { font-size: 12px; font-weight: 800; color: var(--neon-green); background: rgba(0,245,155,0.1); padding: 2px 8px; border-radius: 6px; letter-spacing: 0.5px; }
+.priority-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px; }
+.priority-must { background: rgba(255, 71, 87, 0.15); color: #FF4757; border: 1px solid rgba(255, 71, 87, 0.3); }
+.priority-should { background: rgba(255, 165, 2, 0.15); color: #FFA502; border: 1px solid rgba(255, 165, 2, 0.3); }
+
+.epic-tag { font-size: 11px; font-weight: 600; color: #64B5F6; background: rgba(33, 150, 243, 0.12); padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px; }
+.epic-logistics { color: #81C784; background: rgba(76, 175, 80, 0.12); }
+.epic-analytics { color: #BA68C8; background: rgba(156, 39, 176, 0.12); }
+.epic-security { color: #FFB74D; background: rgba(255, 152, 0, 0.12); }
+
+.card-title { font-size: 13.5px; font-weight: 600; line-height: 1.45; color: #FFFFFF; margin-bottom: 12px; }
+.card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 14px; background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 6px; border-left: 3px solid var(--border-color); }
+.card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px; margin-top: 4px; }
+.card-points { background: #1C2B39; color: #A4B8C7; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.card-status { font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 5px; color: var(--neon-green); }
+.card-status::before { content: ""; width: 7px; height: 7px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 6px var(--neon-green); }
+
+.avatar { width: 22px; height: 22px; border-radius: 50%; background: #2A3F54; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #FFF; }
+</style>
+</head>
+<body>
+    <div class="header">
+        <div class="project-title">
+            <div class="project-icon">V</div>
+            <div>
+                <div class="project-name">VIVA SEDSS - Active Sprint Execution Board</div>
+                <div class="project-subtitle">Agile Board View • Sprint Key: Sprint 1 • Final Review</div>
+            </div>
+        </div>
+        <div class="meta-badges">
+            <div class="meta-badge"><span style="color: #64B5F6;">●</span> 4 Sprint Stories</div>
+            <div class="meta-badge"><span style="color: #FFB74D;">●</span> 24 Story Points</div>
+            <div class="meta-badge active"><span style="color: var(--neon-green);">✓</span> Sprint Status: CLOSED</div>
+        </div>
+    </div>
+
+    <div class="sprint-summary-bar">
+        <div class="sprint-info-left">
+            <div>
+                <div class="sprint-name">Sprint 1: Storefront & Customer Purchasing Engine</div>
+                <div class="sprint-dates">Iteration Window: Oct 15 - Oct 29 (2 Weeks) • Velocity Target: 24 pts</div>
+            </div>
+        </div>
+        <div class="sprint-stats">
+            <div class="stat-item">
+                <div class="stat-val">100%</div>
+                <div class="stat-lbl">Sprint Burn-Down</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-val">0</div>
+                <div class="stat-lbl">Blockers</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-val">24 / 24</div>
+                <div class="stat-lbl">Points Accepted</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="kanban-grid">
+        <!-- To Do -->
+        <div class="column">
+            <div class="col-header">
+                <div class="col-title">To Do / Backlog</div>
+                <span class="col-count">0</span>
+            </div>
+            <div class="card-stack" style="align-items: center; justify-content: center; border: 2px dashed #202F3E; border-radius: 8px;">
+                <span style="font-size: 12px; color: #546E7A;">No pending tasks</span>
+            </div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="column">
+            <div class="col-header">
+                <div class="col-title">In Development</div>
+                <span class="col-count">0</span>
+            </div>
+            <div class="card-stack" style="align-items: center; justify-content: center; border: 2px dashed #202F3E; border-radius: 8px;">
+                <span style="font-size: 12px; color: #546E7A;">All development complete</span>
+            </div>
+        </div>
+
+        <!-- Code Review -->
+        <div class="column">
+            <div class="col-header">
+                <div class="col-title">Testing & QA</div>
+                <span class="col-count">0</span>
+            </div>
+            <div class="card-stack" style="align-items: center; justify-content: center; border: 2px dashed #202F3E; border-radius: 8px;">
+                <span style="font-size: 12px; color: #546E7A;">All test suites passed</span>
+            </div>
+        </div>
+
+        <!-- Done / Accepted -->
+        <div class="column" style="border-color: rgba(0,245,155,0.3); background: rgba(0,245,155,0.02);">
+            <div class="col-header">
+                <div class="col-title" style="color: var(--neon-green);">
+                    <span>✓</span> Done & Accepted
+                </div>
+                <span class="col-count" style="background: rgba(0,245,155,0.2); color: var(--neon-green);">4</span>
+            </div>
+            <div class="card-stack">
+                
+    <div class="card">
+        <div class="card-top">
+            <span class="card-id">US-01</span>
+            <span class="priority-tag priority-must">Must Have</span>
+        </div>
+        <div class="epic-tag epic-tag">Product Discovery</div>
+        <div class="card-title">Multi-Criteria Catalog Search & Dynamic Filtering</div>
+        <div class="card-desc">As a customer, I want to filter products by category, price range, and brand with instant stock visibility so that I can quickly discover items.</div>
+        <div class="card-footer">
+            <span class="card-points">5 pts</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="card-status">Done</span>
+                <div class="avatar" title="Academic Team">AT</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-top">
+            <span class="card-id">US-02</span>
+            <span class="priority-tag priority-must">Must Have</span>
+        </div>
+        <div class="epic-tag epic-tag">Cart & Checkout</div>
+        <div class="card-title">Persistent Shopping Cart with Free Shipping Progress</div>
+        <div class="card-desc">As a customer, I want to manage quantities in my cart and see real-time progress toward free delivery (₹999) so that I can optimize costs.</div>
+        <div class="card-footer">
+            <span class="card-points">5 pts</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="card-status">Done</span>
+                <div class="avatar" title="Academic Team">AT</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-top">
+            <span class="card-id">US-03</span>
+            <span class="priority-tag priority-must">Must Have</span>
+        </div>
+        <div class="epic-tag epic-tag">Order Placement</div>
+        <div class="card-title">Atomic Multi-Option Order Checkout Workflow</div>
+        <div class="card-desc">As a customer, I want to complete checkout with Cash on Delivery or Simulated Online Payment with address verification.</div>
+        <div class="card-footer">
+            <span class="card-points">8 pts</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="card-status">Done</span>
+                <div class="avatar" title="Academic Team">AT</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-top">
+            <span class="card-id">US-04</span>
+            <span class="priority-tag priority-should">Should Have</span>
+        </div>
+        <div class="epic-tag epic-tag">Order Tracking</div>
+        <div class="card-title">Milestone Order Tracking with Visual Stepper</div>
+        <div class="card-desc">As a customer, I want to track my order status through a 5-stage milestone timeline so that I know exact delivery ETA.</div>
+        <div class="card-footer">
+            <span class="card-points">6 pts</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="card-status">Done</span>
+                <div class="avatar" title="Academic Team">AT</div>
+            </div>
+        </div>
+    </div>
+    
+            </div>
+        </div>
+    </div>
+</body>
+</html>
